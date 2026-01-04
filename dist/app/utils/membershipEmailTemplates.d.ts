@@ -1,0 +1,3 @@
+export declare const membershipInterviewUpdateTemplate: (userName: string, membershipType: string, applicationStatus: string, interviewDate?: string, interviewTime?: string, interviewVenue?: string, adminNotes?: string) => string;
+export declare const referenceRequestTemplate: (referenceMemberName: string, applicantName: string, applicantEmail: string, membershipType: string, loginUrl?: string) => string;
+//# sourceMappingURL=membershipEmailTemplates.d.ts.map

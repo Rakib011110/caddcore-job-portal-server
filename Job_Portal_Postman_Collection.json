@@ -1,0 +1,367 @@
+{
+  "info": {
+    "_postman_id": "job-portal-api-collection",
+    "name": "Job Portal API - Complete Testing Suite",
+    "description": "Complete API testing collection for Job Posting & Application System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "JOB MANAGEMENT",
+      "item": [
+        {
+          "name": "1. Create Job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Senior Full Stack Developer\",\"slug\":\"senior-full-stack-developer-2024\",\"description\":\"We are looking for an experienced Full Stack Developer to join our growing team.\",\"companyName\":\"TechCorp Solutions\",\"companyLogoUrl\":\"https://example.com/logo.png\",\"companyWebsite\":\"https://techcorp.com\",\"jobType\":\"Full Time\",\"experience\":\"3-5 years\",\"salaryCurrency\":\"BDT\",\"salaryMin\":1500000,\"salaryMax\":2500000,\"salaryShowInListing\":true,\"category\":\"Engineering\",\"specialization\":\"Full Stack Developer\",\"location\":\"Dhaka\",\"locationType\":\"Hybrid\",\"countries\":[\"Bangladesh\",\"Remote-Allowed\"],\"vacancies\":2,\"qualifications\":[\"Bachelor's Degree in Computer Science\",\"3-5 years experience\"],\"requiredSkills\":[\"JavaScript\",\"React.js\",\"Node.js\",\"MongoDB\"],\"preferredSkills\":[\"Next.js\",\"AWS\",\"Docker\"],\"responsibilities\":[\"Design and develop applications\",\"Collaborate with teams\"],\"benefits\":[\"Competitive Salary\",\"Health Insurance\",\"Professional Development\"],\"applicationDeadline\":\"2024-12-31T23:59:59Z\",\"isActive\":true,\"isFeatured\":true}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/jobs",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "jobs"]
+            }
+          }
+        },
+        {
+          "name": "2. Get All Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/jobs",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "jobs"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Jobs with Filters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/jobs?category=Engineering&jobType=Full Time&location=Dhaka",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "jobs"],
+              "query": [
+                {"key": "category", "value": "Engineering"},
+                {"key": "jobType", "value": "Full Time"},
+                {"key": "location", "value": "Dhaka"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "4. Get Single Job by Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/jobs/senior-full-stack-developer-2024",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "jobs", "senior-full-stack-developer-2024"]
+            }
+          }
+        },
+        {
+          "name": "5. Get Featured Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/jobs/featured/list",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "jobs", "featured", "list"]
+            }
+          }
+        },
+        {
+          "name": "6. Jobs Analytics - Count by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/jobs/analytics/count-by-category",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "jobs", "analytics", "count-by-category"]
+            }
+          }
+        },
+        {
+          "name": "7. Jobs Analytics - Total Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/jobs/analytics/total-count",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "jobs", "analytics", "total-count"]
+            }
+          }
+        },
+        {
+          "name": "8. Update Job",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\":\"Senior Full Stack Developer (Updated)\",\"vacancies\":3,\"salaryMax\":3000000}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/jobs/PASTE_JOB_ID_HERE",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "jobs", "PASTE_JOB_ID_HERE"]
+            }
+          }
+        },
+        {
+          "name": "9. Delete Job",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/jobs/PASTE_JOB_ID_HERE",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "jobs", "PASTE_JOB_ID_HERE"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "JOB APPLICATIONS",
+      "item": [
+        {
+          "name": "1. Apply for Job (Multipart Form)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {"key": "resume", "type": "file", "src": ""},
+                {"key": "jobId", "value": "PASTE_JOB_ID_HERE", "type": "text"},
+                {"key": "firstName", "value": "John", "type": "text"},
+                {"key": "lastName", "value": "Doe", "type": "text"},
+                {"key": "email", "value": "john.doe@example.com", "type": "text"},
+                {"key": "phoneNumber", "value": "01712345678", "type": "text"},
+                {"key": "currentPosition", "value": "Senior Developer", "type": "text"},
+                {"key": "currentCompany", "value": "ABC Corp", "type": "text"},
+                {"key": "yearsOfExperience", "value": "4", "type": "text"},
+                {"key": "linkedinProfile", "value": "https://linkedin.com/in/johndoe", "type": "text"},
+                {"key": "portfolioUrl", "value": "https://johndoe.com", "type": "text"},
+                {"key": "academicQualification", "value": "Bachelor of Science in Computer Engineering", "type": "text"},
+                {"key": "universityName", "value": "BUET", "type": "text"},
+                {"key": "degreeTitle", "value": "B.Sc in Computer Engineering", "type": "text"},
+                {"key": "graduationYear", "value": "2019", "type": "text"},
+                {"key": "presentAddress", "value": "123 Main Street, Gulshan", "type": "text"},
+                {"key": "presentCity", "value": "Dhaka", "type": "text"},
+                {"key": "presentCountry", "value": "Bangladesh", "type": "text"},
+                {"key": "technicalSkills", "value": "[\"JavaScript\",\"TypeScript\",\"React.js\",\"Node.js\",\"MongoDB\"]", "type": "text"},
+                {"key": "softSkills", "value": "[\"Communication\",\"Problem Solving\",\"Team Work\"]", "type": "text"},
+                {"key": "coverLetter", "value": "I am very interested in this position...", "type": "text"},
+                {"key": "certifications", "value": "[\"AWS Solutions Architect Associate\"]", "type": "text"},
+                {"key": "languages", "value": "[{\"name\":\"English\",\"proficiency\":\"Fluent\"},{\"name\":\"Bengali\",\"proficiency\":\"Native\"}]", "type": "text"},
+                {"key": "whyHireYou", "value": "I can bring extensive full-stack experience and passion for technology.", "type": "text"},
+                {"key": "preferredEmploymentType", "value": "Full Time", "type": "text"},
+                {"key": "noticePeriod", "value": "2 weeks", "type": "text"}
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/apply",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "apply"]
+            }
+          }
+        },
+        {
+          "name": "2. Get All Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications"]
+            }
+          }
+        },
+        {
+          "name": "3. Get Applications for Specific Job",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/job/PASTE_JOB_ID_HERE",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "job", "PASTE_JOB_ID_HERE"]
+            }
+          }
+        },
+        {
+          "name": "4. Get Single Application",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/PASTE_APPLICATION_ID_HERE",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "PASTE_APPLICATION_ID_HERE"]
+            }
+          }
+        },
+        {
+          "name": "5. Search Applications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/search?jobId=PASTE_JOB_ID_HERE&applicationStatus=Shortlisted",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "search"],
+              "query": [
+                {"key": "jobId", "value": "PASTE_JOB_ID_HERE"},
+                {"key": "applicationStatus", "value": "Shortlisted"}
+              ]
+            }
+          }
+        },
+        {
+          "name": "6. Get Applications by Email",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/email/john.doe@example.com",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "email", "john.doe@example.com"]
+            }
+          }
+        },
+        {
+          "name": "7. Update Application Status",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"applicationStatus\":\"Shortlisted\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/PASTE_APPLICATION_ID_HERE/status",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "PASTE_APPLICATION_ID_HERE", "status"]
+            }
+          }
+        },
+        {
+          "name": "8. Add Internal Notes",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {"key": "Content-Type", "value": "application/json"}
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"internalNotes\":\"Promising candidate. Schedule technical interview next week.\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/PASTE_APPLICATION_ID_HERE/notes",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "PASTE_APPLICATION_ID_HERE", "notes"]
+            }
+          }
+        },
+        {
+          "name": "9. Get Application Count by Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/job/PASTE_JOB_ID_HERE/count-by-status",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "job", "PASTE_JOB_ID_HERE", "count-by-status"]
+            }
+          }
+        },
+        {
+          "name": "10. Get Total Applications Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/job/PASTE_JOB_ID_HERE/total-count",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "job", "PASTE_JOB_ID_HERE", "total-count"]
+            }
+          }
+        },
+        {
+          "name": "11. Delete Application",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5000/api/job-applications/PASTE_APPLICATION_ID_HERE",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5000",
+              "path": ["api", "job-applications", "PASTE_APPLICATION_ID_HERE"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

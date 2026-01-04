@@ -1,0 +1,2 @@
+export declare const examinerInterviewInvitationTemplate: (examinerName: string, interviewDate: string, interviewTime?: string, interviewVenue?: string) => string;
+//# sourceMappingURL=accessorEmailTemplate.d.ts.map

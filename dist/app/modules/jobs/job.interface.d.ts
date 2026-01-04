@@ -1,0 +1,48 @@
+import { Types } from 'mongoose';
+export type TJobs = {
+    _id?: string;
+    title: string;
+    slug: string;
+    description: string;
+    companyName: string;
+    companyLogoUrl?: string;
+    companyWebsite?: string;
+    company?: Types.ObjectId;
+    postedBy?: Types.ObjectId;
+    jobType: "Full Time" | "Part Time" | "Contract" | "Temporary" | "Internship" | "Freelance";
+    experience: string;
+    salaryCurrency: string;
+    salaryMin?: number;
+    salaryMax?: number;
+    salaryShowInListing?: boolean;
+    salaryRange?: string;
+    category: string;
+    categoryRef?: Types.ObjectId;
+    subcategory?: string;
+    subcategoryRef?: Types.ObjectId;
+    specialization?: string;
+    location: string;
+    locationType: "On-Site" | "Remote" | "Hybrid";
+    countries?: string[];
+    vacancies: number;
+    qualifications: string[];
+    requiredSkills: string[];
+    preferredSkills?: string[];
+    responsibilities: string[];
+    benefits: string[];
+    datePosted: Date;
+    applicationDeadline?: Date;
+    duration?: string;
+    aboutCompany?: string;
+    certificationsRequired?: string[];
+    languages?: Array<{
+        name: string;
+        level: string;
+    }>;
+    isActive: boolean;
+    isFeatured?: boolean;
+    tags?: string[];
+    createdAt?: Date;
+    updatedAt?: Date;
+};
+//# sourceMappingURL=job.interface.d.ts.map
