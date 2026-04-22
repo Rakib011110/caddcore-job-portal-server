@@ -13,9 +13,10 @@ export const SECURITY_CONFIG = {
     origin: process.env.NODE_ENV === 'production'
       ? [
           process.env.FRONTEND_URL || 'https://basebd.org',
-          process.env.CLIENT_URL || 'http://localhost:3000'
+          process.env.CLIENT_URL || 'http://localhost:3000',
+          'https://caddcore-job-portal-client.vercel.app'
         ]
-      : ['http://localhost:3000', 'http://localhost:3001'],
+      : ['http://localhost:3000', 'http://localhost:3001', 'https://caddcore-job-portal-client.vercel.app'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],

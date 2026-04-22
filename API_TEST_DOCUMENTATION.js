@@ -5,7 +5,7 @@
  * This file contains all the API endpoints with complete JSON examples
  * for testing the Job Posting & Application System
  *
- * Base URL: http://localhost:5000/api
+ * Base URL: https://caddcore-job-portal-server-code.vercel.app/api
  */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ERROR_VALIDATION = exports.ERROR_MISSING_RESUME = exports.ERROR_FILE_TOO_LARGE = exports.ERROR_INVALID_FILE = exports.ERROR_NOT_FOUND = exports.GET_TOTAL_JOBS_COUNT_RESPONSE = exports.GET_JOBS_COUNT_BY_CATEGORY_RESPONSE = exports.GET_TOTAL_APPLICATIONS_COUNT_RESPONSE = exports.GET_APPLICATION_COUNT_BY_STATUS_RESPONSE = exports.SEARCH_APPLICATIONS_RESPONSE = exports.GET_APPLICATIONS_BY_EMAIL_RESPONSE = exports.DELETE_APPLICATION_RESPONSE = exports.ADD_APPLICATION_NOTES_RESPONSE = exports.ADD_APPLICATION_NOTES_REQUEST = exports.UPDATE_APPLICATION_STATUS_RESPONSE = exports.UPDATE_APPLICATION_STATUS_REQUEST = exports.GET_SINGLE_APPLICATION_RESPONSE = exports.GET_ALL_APPLICATIONS_RESPONSE = exports.GET_APPLICATIONS_FOR_JOB_RESPONSE = exports.APPLY_JOB_RESPONSE = exports.APPLY_JOB_REQUEST = exports.GET_JOBS_BY_COMPANY_RESPONSE = exports.GET_FEATURED_JOBS_RESPONSE = exports.DELETE_JOB_RESPONSE = exports.UPDATE_JOB_RESPONSE = exports.UPDATE_JOB_REQUEST = exports.GET_SINGLE_JOB_RESPONSE = exports.GET_ALL_JOBS_RESPONSE = exports.CREATE_JOB_RESPONSE = exports.CREATE_JOB_REQUEST = void 0;
@@ -367,7 +367,7 @@ exports.GET_JOBS_BY_COMPANY_RESPONSE = GET_JOBS_BY_COMPANY_RESPONSE;
  * - whyHireYou: string (optional)
  *
  * Example using curl:
- * curl -X POST http://localhost:5000/api/job-applications/apply \
+ * curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply \
  *   -F "resume=@/path/to/resume.pdf" \
  *   -F "jobId=507f1f77bcf86cd799439011" \
  *   -F "firstName=John" \
@@ -468,7 +468,7 @@ const APPLY_JOB_RESPONSE = {
         "presentCountry": "Bangladesh",
         "resumeFileName": "user123_1700129400000.pdf",
         "resumePath": "/uploads/job-applications/user123_1700129400000.pdf",
-        "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
+        "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
         "technicalSkills": [
             "JavaScript",
             "TypeScript",
@@ -533,7 +533,7 @@ const GET_APPLICATIONS_FOR_JOB_RESPONSE = {
                 "Problem Solving",
                 "Team Work"
             ],
-            "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
+            "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
             "applicationStatus": "Pending",
             "appliedAt": "2024-11-16T12:00:00Z"
         },
@@ -571,7 +571,7 @@ const GET_APPLICATIONS_FOR_JOB_RESPONSE = {
                 "Communication",
                 "Mentoring"
             ],
-            "resumeUrl": "http://localhost:5000/uploads/job-applications/user456_1700129500000.pdf",
+            "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user456_1700129500000.pdf",
             "applicationStatus": "Shortlisted",
             "appliedAt": "2024-11-15T10:30:00Z"
         }
@@ -668,7 +668,7 @@ const GET_SINGLE_APPLICATION_RESPONSE = {
         "noticePeriod": "2 weeks",
         "resumeFileName": "user123_1700129400000.pdf",
         "resumePath": "/uploads/job-applications/user123_1700129400000.pdf",
-        "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
+        "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
         "applicationStatus": "Pending",
         "internalNotes": "Promising candidate, good tech background",
         "appliedAt": "2024-11-16T12:00:00Z",

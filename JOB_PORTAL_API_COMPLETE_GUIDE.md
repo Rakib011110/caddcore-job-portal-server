@@ -7,6 +7,7 @@ This document provides complete guidance for the Job Posting & Application Syste
 ### ✅ Completed Implementation
 
 #### **STEP 1: Job Model ✓**
+
 - Advanced job fields including salary range, location type, qualifications, skills
 - Featured jobs functionality
 - Tags and SEO metadata
@@ -15,6 +16,7 @@ This document provides complete guidance for the Job Posting & Application Syste
 - Active status management
 
 #### **STEP 2: Job APIs ✓**
+
 - `POST /api/jobs` - Create job
 - `GET /api/jobs` - Get all jobs with filters
 - `GET /api/jobs/:slug` - Get single job by slug
@@ -27,6 +29,7 @@ This document provides complete guidance for the Job Posting & Application Syste
 - `GET /api/jobs/analytics/total-count` - Total jobs count
 
 #### **STEP 3: Job Application Model ✓**
+
 - Professional candidate information
 - Resume/CV file upload handling
 - Academic qualifications with universities
@@ -38,6 +41,7 @@ This document provides complete guidance for the Job Posting & Application Syste
 - Job and user references
 
 #### **STEP 4: Job Application APIs ✓**
+
 - `POST /api/job-applications/apply` - Apply with resume upload
 - `GET /api/job-applications` - Get all applications
 - `GET /api/job-applications/job/:jobId` - Get all applicants for a job
@@ -51,6 +55,7 @@ This document provides complete guidance for the Job Posting & Application Syste
 - `GET /api/job-applications/job/:jobId/total-count` - Total applications count
 
 #### **STEP 5: Multer File Upload ✓**
+
 - Resume/CV upload (PDF, DOC, DOCX)
 - 5MB file size limit
 - Secure file storage in `/uploads/job-applications/`
@@ -62,6 +67,7 @@ This document provides complete guidance for the Job Posting & Application Syste
 ## 🚀 Getting Started
 
 ### Prerequisites
+
 - Node.js (v18 or higher)
 - MongoDB (connected and running)
 - Postman or Thunder Client for API testing
@@ -69,25 +75,28 @@ This document provides complete guidance for the Job Posting & Application Syste
 ### Installation
 
 1. **Install dependencies** (if not already done):
+
 ```bash
 cd caddcore-Job-portal-server-code
 npm install
 ```
 
 2. **Start the server**:
+
 ```bash
 npm run dev
 ```
 
-Server runs on: `http://localhost:5000`
+Server runs on: `https://caddcore-job-portal-server-code.vercel.app`
 
 ---
 
 ## 📚 API Documentation
 
 ### Base URL
+
 ```
-http://localhost:5000/api
+https://caddcore-job-portal-server-code.vercel.app/api
 ```
 
 ---
@@ -99,6 +108,7 @@ http://localhost:5000/api
 **Endpoint:** `POST /api/jobs`
 
 **Headers:**
+
 ```json
 {
   "Content-Type": "application/json"
@@ -106,6 +116,7 @@ http://localhost:5000/api
 ```
 
 **Request Body:**
+
 ```json
 {
   "title": "Senior Full Stack Developer",
@@ -139,13 +150,7 @@ http://localhost:5000/api
     "RESTful APIs",
     "Git"
   ],
-  "preferredSkills": [
-    "Next.js",
-    "AWS",
-    "Docker",
-    "Kubernetes",
-    "GraphQL"
-  ],
+  "preferredSkills": ["Next.js", "AWS", "Docker", "Kubernetes", "GraphQL"],
   "responsibilities": [
     "Design and develop scalable web applications",
     "Collaborate with cross-functional teams",
@@ -180,17 +185,12 @@ http://localhost:5000/api
   ],
   "isActive": true,
   "isFeatured": true,
-  "tags": [
-    "full-stack",
-    "react",
-    "nodejs",
-    "javascript",
-    "remote-friendly"
-  ]
+  "tags": ["full-stack", "react", "nodejs", "javascript", "remote-friendly"]
 }
 ```
 
 **Expected Response (201 Created):**
+
 ```json
 {
   "success": true,
@@ -220,11 +220,13 @@ http://localhost:5000/api
 **Endpoint:** `GET /api/jobs`
 
 **Query Parameters (Optional):**
+
 ```
 ?category=Engineering&jobType=Full Time&location=Dhaka&search=developer
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -258,6 +260,7 @@ http://localhost:5000/api
 **Example:** `GET /api/jobs/senior-full-stack-developer-2024`
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -287,6 +290,7 @@ http://localhost:5000/api
 **Endpoint:** `GET /api/jobs/featured/list`
 
 **Query Parameters:**
+
 ```
 ?limit=5
 ```
@@ -300,6 +304,7 @@ http://localhost:5000/api
 **Example:** `PATCH /api/jobs/507f1f77bcf86cd799439011`
 
 **Request Body:**
+
 ```json
 {
   "title": "Senior Full Stack Developer (Updated)",
@@ -326,45 +331,47 @@ http://localhost:5000/api
 **Endpoint:** `POST /api/job-applications/apply`
 
 **Headers:**
+
 ```
 Content-Type: multipart/form-data
 ```
 
 **Form Fields:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| resume | File | ✅ Yes | PDF, DOC, or DOCX (Max 5MB) |
-| jobId | String | ✅ Yes | ID of the job posting |
-| firstName | String | ✅ Yes | Candidate's first name |
-| lastName | String | ✅ Yes | Candidate's last name |
-| email | String | ✅ Yes | Email address |
-| phoneNumber | String | ✅ Yes | Contact number |
-| yearsOfExperience | Number | ✅ Yes | Years of experience |
-| academicQualification | String | ✅ Yes | Education qualification |
-| universityName | String | ✅ Yes | University/College name |
-| presentAddress | String | ✅ Yes | Current address |
-| presentCity | String | ✅ Yes | Current city |
-| presentCountry | String | ✅ Yes | Current country |
-| technicalSkills | String (JSON Array) | ✅ Yes | ["JavaScript", "React", "Node.js"] |
-| softSkills | String (JSON Array) | ✅ Yes | ["Communication", "Team Work"] |
-| currentPosition | String | ⭕ Optional | Current job title |
-| currentCompany | String | ⭕ Optional | Current company |
-| linkedinProfile | String | ⭕ Optional | LinkedIn profile URL |
-| portfolioUrl | String | ⭕ Optional | Portfolio website URL |
-| websiteUrl | String | ⭕ Optional | Personal website URL |
-| degreeTitle | String | ⭕ Optional | Specific degree name |
-| graduationYear | Number | ⭕ Optional | Year of graduation |
-| coverLetter | String | ⭕ Optional | Cover letter text |
-| certifications | String (JSON Array) | ⭕ Optional | ["AWS Certified", "Google Cloud"] |
-| languages | String (JSON Array) | ⭕ Optional | [{"name":"English","proficiency":"Fluent"}] |
-| whyHireYou | String | ⭕ Optional | Why should we hire you |
-| preferredEmploymentType | String | ⭕ Optional | "Full Time", "Part Time", etc. |
-| noticePeriod | String | ⭕ Optional | "Immediate", "2 weeks", "1 month" |
+| Field                   | Type                | Required    | Description                                 |
+| ----------------------- | ------------------- | ----------- | ------------------------------------------- |
+| resume                  | File                | ✅ Yes      | PDF, DOC, or DOCX (Max 5MB)                 |
+| jobId                   | String              | ✅ Yes      | ID of the job posting                       |
+| firstName               | String              | ✅ Yes      | Candidate's first name                      |
+| lastName                | String              | ✅ Yes      | Candidate's last name                       |
+| email                   | String              | ✅ Yes      | Email address                               |
+| phoneNumber             | String              | ✅ Yes      | Contact number                              |
+| yearsOfExperience       | Number              | ✅ Yes      | Years of experience                         |
+| academicQualification   | String              | ✅ Yes      | Education qualification                     |
+| universityName          | String              | ✅ Yes      | University/College name                     |
+| presentAddress          | String              | ✅ Yes      | Current address                             |
+| presentCity             | String              | ✅ Yes      | Current city                                |
+| presentCountry          | String              | ✅ Yes      | Current country                             |
+| technicalSkills         | String (JSON Array) | ✅ Yes      | ["JavaScript", "React", "Node.js"]          |
+| softSkills              | String (JSON Array) | ✅ Yes      | ["Communication", "Team Work"]              |
+| currentPosition         | String              | ⭕ Optional | Current job title                           |
+| currentCompany          | String              | ⭕ Optional | Current company                             |
+| linkedinProfile         | String              | ⭕ Optional | LinkedIn profile URL                        |
+| portfolioUrl            | String              | ⭕ Optional | Portfolio website URL                       |
+| websiteUrl              | String              | ⭕ Optional | Personal website URL                        |
+| degreeTitle             | String              | ⭕ Optional | Specific degree name                        |
+| graduationYear          | Number              | ⭕ Optional | Year of graduation                          |
+| coverLetter             | String              | ⭕ Optional | Cover letter text                           |
+| certifications          | String (JSON Array) | ⭕ Optional | ["AWS Certified", "Google Cloud"]           |
+| languages               | String (JSON Array) | ⭕ Optional | [{"name":"English","proficiency":"Fluent"}] |
+| whyHireYou              | String              | ⭕ Optional | Why should we hire you                      |
+| preferredEmploymentType | String              | ⭕ Optional | "Full Time", "Part Time", etc.              |
+| noticePeriod            | String              | ⭕ Optional | "Immediate", "2 weeks", "1 month"           |
 
 **Example using cURL:**
+
 ```bash
-curl -X POST http://localhost:5000/api/job-applications/apply \
+curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply \
   -F "resume=@/path/to/resume.pdf" \
   -F "jobId=507f1f77bcf86cd799439011" \
   -F "firstName=John" \
@@ -387,6 +394,7 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 ```
 
 **Expected Response (201 Created):**
+
 ```json
 {
   "success": true,
@@ -406,7 +414,7 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
     "presentCountry": "Bangladesh",
     "resumeFileName": "user123_1700129400000.pdf",
     "resumePath": "/uploads/job-applications/user123_1700129400000.pdf",
-    "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
+    "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
     "technicalSkills": ["JavaScript", "React.js", "Node.js", "MongoDB"],
     "softSkills": ["Communication", "Problem Solving", "Team Work"],
     "applicationStatus": "Pending",
@@ -424,6 +432,7 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 **Example:** `GET /api/job-applications/job/507f1f77bcf86cd799439011`
 
 **Response (200 OK):**
+
 ```json
 {
   "success": true,
@@ -452,9 +461,15 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
       "presentCountry": "Bangladesh",
       "linkedinProfile": "https://linkedin.com/in/johndoe",
       "portfolioUrl": "https://johndoe.com",
-      "technicalSkills": ["JavaScript", "TypeScript", "React.js", "Node.js", "MongoDB"],
+      "technicalSkills": [
+        "JavaScript",
+        "TypeScript",
+        "React.js",
+        "Node.js",
+        "MongoDB"
+      ],
       "softSkills": ["Communication", "Problem Solving", "Team Work"],
-      "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
+      "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
       "applicationStatus": "Pending",
       "appliedAt": "2024-11-16T12:00:00Z"
     },
@@ -500,6 +515,7 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 **Endpoint:** `PATCH /api/job-applications/:id/status`
 
 **Request Body:**
+
 ```json
 {
   "applicationStatus": "Shortlisted"
@@ -507,6 +523,7 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 ```
 
 **Status Options:**
+
 - `Pending`
 - `Reviewed`
 - `Shortlisted`
@@ -521,6 +538,7 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 **Endpoint:** `PATCH /api/job-applications/:id/notes`
 
 **Request Body:**
+
 ```json
 {
   "internalNotes": "Promising candidate. Good communication skills. Schedule technical interview for next week."
@@ -548,6 +566,7 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 **Endpoint:** `GET /api/job-applications/search`
 
 **Query Parameters:**
+
 ```
 ?jobId=507f1f77bcf86cd799439011&applicationStatus=Shortlisted&name=John&email=john.doe@example.com
 ```
@@ -559,18 +578,19 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 **Endpoint:** `GET /api/job-applications/job/:jobId/count-by-status`
 
 **Response Example:**
+
 ```json
 {
   "success": true,
   "statusCode": 200,
   "message": "Application count by status fetched successfully",
   "data": [
-    {"_id": "Pending", "count": 15},
-    {"_id": "Reviewed", "count": 8},
-    {"_id": "Shortlisted", "count": 5},
-    {"_id": "Interview Scheduled", "count": 3},
-    {"_id": "Selected", "count": 1},
-    {"_id": "Rejected", "count": 10}
+    { "_id": "Pending", "count": 15 },
+    { "_id": "Reviewed", "count": 8 },
+    { "_id": "Shortlisted", "count": 5 },
+    { "_id": "Interview Scheduled", "count": 3 },
+    { "_id": "Selected", "count": 1 },
+    { "_id": "Rejected", "count": 10 }
   ]
 }
 ```
@@ -582,6 +602,7 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 **Endpoint:** `GET /api/job-applications/job/:jobId/total-count`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -600,6 +621,7 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 ### Option 1: Using Postman
 
 1. **Import Collection:**
+
    - Open Postman
    - Click `Import`
    - Select `Job_Portal_Postman_Collection.json`
@@ -623,15 +645,15 @@ curl -X POST http://localhost:5000/api/job-applications/apply \
 
 ```bash
 # 1. Create Job
-curl -X POST http://localhost:5000/api/jobs \
+curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/jobs \
   -H "Content-Type: application/json" \
   -d '{...job data...}'
 
 # 2. Get All Jobs
-curl http://localhost:5000/api/jobs
+curl https://caddcore-job-portal-server-code.vercel.app/api/jobs
 
 # 3. Apply for Job
-curl -X POST http://localhost:5000/api/job-applications/apply \
+curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply \
   -F "resume=@resume.pdf" \
   -F "jobId=..." \
   -F "firstName=John" \
@@ -675,6 +697,7 @@ caddcore-Job-portal-server-code/
 ## 🔐 Security Features
 
 ✅ **File Upload Security:**
+
 - Only PDF, DOC, DOCX allowed
 - 5MB file size limit
 - Unique filename generation
@@ -682,12 +705,14 @@ caddcore-Job-portal-server-code/
 - Accessible via HTTP
 
 ✅ **Data Validation:**
+
 - Required field validation
 - Email format validation
 - Phone number validation
 - Years of experience validation
 
 ✅ **Database Indexes:**
+
 - Optimized queries on job slug, category, location
 - Fast application status queries
 - Efficient sorting by date
@@ -697,6 +722,7 @@ caddcore-Job-portal-server-code/
 ## 📊 Database Fields Reference
 
 ### Job Collection Fields
+
 - title, slug, description
 - companyName, companyLogoUrl, companyWebsite
 - jobType (Full Time, Part Time, Contract, etc.)
@@ -710,6 +736,7 @@ caddcore-Job-portal-server-code/
 - tags, datePosted, applicationDeadline
 
 ### JobApplication Collection Fields
+
 - jobId, userId
 - firstName, lastName, email, phoneNumber
 - currentPosition, currentCompany, yearsOfExperience
@@ -731,6 +758,7 @@ caddcore-Job-portal-server-code/
 ## 🐛 Error Handling
 
 All errors follow standard format:
+
 ```json
 {
   "success": false,
@@ -741,6 +769,7 @@ All errors follow standard format:
 ```
 
 Common Status Codes:
+
 - `200` - Success
 - `201` - Created
 - `400` - Bad Request
@@ -763,6 +792,7 @@ Common Status Codes:
 ## 📞 Support
 
 For questions or issues, refer to:
+
 - API_TEST_DOCUMENTATION.ts - Full code examples
 - Job_Portal_Postman_Collection.json - Ready-to-use API tests
 - inline code comments in service/controller files

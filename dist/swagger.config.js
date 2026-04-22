@@ -25,7 +25,7 @@ const swaggerOptions = {
         },
         servers: [
             {
-                url: 'http://localhost:5000/api',
+                url: 'https://caddcore-job-portal-server-code.vercel.app/api',
                 description: 'Development Server',
             },
         ],
@@ -65,7 +65,7 @@ function setupSwagger(app) {
         res.setHeader('Content-Type', 'application/json');
         res.send(swaggerSpec);
     });
-    console.log('📚 Swagger docs available at: http://localhost:5000/api-docs');
+    console.log('📚 Swagger docs available at: https://caddcore-job-portal-server-code.vercel.app/api-docs');
 }
 exports.default = swaggerSpec;
 //# sourceMappingURL=swagger.config.js.map

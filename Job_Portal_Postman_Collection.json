@@ -24,7 +24,7 @@
               "raw": "{\"title\":\"Senior Full Stack Developer\",\"slug\":\"senior-full-stack-developer-2024\",\"description\":\"We are looking for an experienced Full Stack Developer to join our growing team.\",\"companyName\":\"TechCorp Solutions\",\"companyLogoUrl\":\"https://example.com/logo.png\",\"companyWebsite\":\"https://techcorp.com\",\"jobType\":\"Full Time\",\"experience\":\"3-5 years\",\"salaryCurrency\":\"BDT\",\"salaryMin\":1500000,\"salaryMax\":2500000,\"salaryShowInListing\":true,\"category\":\"Engineering\",\"specialization\":\"Full Stack Developer\",\"location\":\"Dhaka\",\"locationType\":\"Hybrid\",\"countries\":[\"Bangladesh\",\"Remote-Allowed\"],\"vacancies\":2,\"qualifications\":[\"Bachelor's Degree in Computer Science\",\"3-5 years experience\"],\"requiredSkills\":[\"JavaScript\",\"React.js\",\"Node.js\",\"MongoDB\"],\"preferredSkills\":[\"Next.js\",\"AWS\",\"Docker\"],\"responsibilities\":[\"Design and develop applications\",\"Collaborate with teams\"],\"benefits\":[\"Competitive Salary\",\"Health Insurance\",\"Professional Development\"],\"applicationDeadline\":\"2024-12-31T23:59:59Z\",\"isActive\":true,\"isFeatured\":true}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/jobs",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/jobs",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -38,7 +38,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/jobs",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/jobs",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -52,7 +52,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/jobs?category=Engineering&jobType=Full Time&location=Dhaka",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/jobs?category=Engineering&jobType=Full Time&location=Dhaka",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -71,7 +71,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/jobs/senior-full-stack-developer-2024",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/jobs/senior-full-stack-developer-2024",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -85,7 +85,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/jobs/featured/list",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/jobs/featured/list",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -99,7 +99,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/jobs/analytics/count-by-category",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/jobs/analytics/count-by-category",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -113,7 +113,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/jobs/analytics/total-count",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/jobs/analytics/total-count",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -133,7 +133,7 @@
               "raw": "{\"title\":\"Senior Full Stack Developer (Updated)\",\"vacancies\":3,\"salaryMax\":3000000}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/jobs/PASTE_JOB_ID_HERE",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/jobs/PASTE_JOB_ID_HERE",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -147,7 +147,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/jobs/PASTE_JOB_ID_HERE",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/jobs/PASTE_JOB_ID_HERE",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -197,7 +197,7 @@
               ]
             },
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/apply",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -211,7 +211,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/job-applications",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -225,7 +225,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/job/PASTE_JOB_ID_HERE",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/job/PASTE_JOB_ID_HERE",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -239,7 +239,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/PASTE_APPLICATION_ID_HERE",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/PASTE_APPLICATION_ID_HERE",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -253,7 +253,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/search?jobId=PASTE_JOB_ID_HERE&applicationStatus=Shortlisted",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/search?jobId=PASTE_JOB_ID_HERE&applicationStatus=Shortlisted",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -271,7 +271,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/email/john.doe@example.com",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/email/john.doe@example.com",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -291,7 +291,7 @@
               "raw": "{\"applicationStatus\":\"Shortlisted\"}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/PASTE_APPLICATION_ID_HERE/status",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/PASTE_APPLICATION_ID_HERE/status",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -311,7 +311,7 @@
               "raw": "{\"internalNotes\":\"Promising candidate. Schedule technical interview next week.\"}"
             },
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/PASTE_APPLICATION_ID_HERE/notes",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/PASTE_APPLICATION_ID_HERE/notes",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -325,7 +325,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/job/PASTE_JOB_ID_HERE/count-by-status",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/job/PASTE_JOB_ID_HERE/count-by-status",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -339,7 +339,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/job/PASTE_JOB_ID_HERE/total-count",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/job/PASTE_JOB_ID_HERE/total-count",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",
@@ -353,7 +353,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:5000/api/job-applications/PASTE_APPLICATION_ID_HERE",
+              "raw": "https://caddcore-job-portal-server-code.vercel.app/api/job-applications/PASTE_APPLICATION_ID_HERE",
               "protocol": "http",
               "host": ["localhost"],
               "port": "5000",

@@ -4,7 +4,7 @@
  * This file contains all the API endpoints with complete JSON examples
  * for testing the Job Posting & Application System
  *
- * Base URL: http://localhost:5000/api
+ * Base URL: https://caddcore-job-portal-server-code.vercel.app/api
  */
 /**
  * 1.1 CREATE A NEW JOB
@@ -254,7 +254,7 @@ declare const GET_JOBS_BY_COMPANY_RESPONSE: {
  * - whyHireYou: string (optional)
  *
  * Example using curl:
- * curl -X POST http://localhost:5000/api/job-applications/apply \
+ * curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply \
  *   -F "resume=@/path/to/resume.pdf" \
  *   -F "jobId=507f1f77bcf86cd799439011" \
  *   -F "firstName=John" \
