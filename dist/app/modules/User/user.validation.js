@@ -21,6 +21,9 @@ const createUserValidationSchema = zod_1.z.object({
         nid: zod_1.z.string().optional(),
         profilePhoto: zod_1.z.string().optional(),
         address: zod_1.z.string().optional(),
+        // Optional here on purpose: whether a Student ID is required is a runtime
+        // setting, so that check lives in the service layer, not this static schema.
+        studentId: zod_1.z.string().optional(),
     }),
 });
 const updateUserValidationSchema = zod_1.z.object({
@@ -34,6 +37,8 @@ const updateUserValidationSchema = zod_1.z.object({
         nid: zod_1.z.string().optional(),
         profilePhoto: zod_1.z.string().optional(),
         address: zod_1.z.string().optional(),
+        // Only writable while unset - the service enforces claim-once semantics.
+        studentId: zod_1.z.string().optional(),
         age: zod_1.z.number().optional(),
         cvUrl: zod_1.z.string().optional(),
         experienceCertificateUrl: zod_1.z.string().optional(),

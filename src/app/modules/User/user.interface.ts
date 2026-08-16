@@ -137,6 +137,20 @@ export type TUser = {
   status: keyof typeof USER_STATUS;
   mobileNumber?: string;
   companyId?: Types.ObjectId;  // For COMPANY role users
+
+  /**
+   * CADD CORE Student ID claimed by the user at registration.
+   *
+   * This is a SELF-REPORTED claim, not a verified one - it is unique across all
+   * users so a single ID cannot be reused, but nothing here proves the ID is
+   * genuine. The admin-verified counterpart lives in
+   * `caddcoreVerification.studentId`, which is only ever written by the
+   * verification approval flow.
+   *
+   * Whether it is required at registration is controlled at runtime by the
+   * `registration.student_id_required` setting.
+   */
+  studentId?: string;
   
   // ═══════════════════════════════════════════════════════════════════════════
   // AUTHENTICATION & SECURITY

@@ -14,6 +14,7 @@ exports.CompanyRoutes = void 0;
 const express_1 = __importDefault(require("express"));
 const company_controller_1 = require("./company.controller");
 const auth_1 = __importDefault(require("../../middlewares/auth"));
+const requireVerifiedViewer_1 = require("../../middlewares/requireVerifiedViewer");
 const router = express_1.default.Router();
 // ═══════════════════════════════════════════════════════════════════════════════
 // PUBLIC ROUTES
@@ -25,17 +26,36 @@ const router = express_1.default.Router();
  */
 router.post('/register', company_controller_1.CompanyController.registerCompany);
 /**
- * @route   GET /api/v1/company/public
- * @desc    Get all approved companies (for public listing)
+ * @route   GET /api/v1/company/teaser
+ * @desc    Logo/name/count only, for the homepage shop window
  * @access  Public
+ *
+ * Declared before `/public` so it can never be read as a slug.
  */
-router.get('/public', company_controller_1.CompanyController.getAllApprovedCompanies);
+router.get('/teaser', company_controller_1.CompanyController.getPublicCompanyTeasers);
+// ═══════════════════════════════════════════════════════════════════════════════
+// COMPANY DIRECTORY — MEMBERS ONLY
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// Still called "public" because clients depend on the URLs, but these are not
+// public: the full record populates the owner's email address, so an open
+// endpoint handed anyone a scrapeable list of every employer's contact details.
+// Readers must be a verified job seeker, an approved company, or staff — the
+// same rule the listing page applies in the browser.
+//
+// Anonymous marketing surfaces use `/teaser` above instead.
+/**
+ * @route   GET /api/v1/company/public
+ * @desc    Get all approved companies (directory listing)
+ * @access  Verified members, approved companies, staff
+ */
+router.get('/public', (0, auth_1.default)(), requireVerifiedViewer_1.requireVerifiedViewer, company_controller_1.CompanyController.getAllApprovedCompanies);
 /**
  * @route   GET /api/v1/company/public/:slug
- * @desc    Get company by slug (for public profile page)
- * @access  Public
+ * @desc    Get company by slug (company profile page)
+ * @access  Verified members, approved companies, staff
  */
-router.get('/public/:slug', company_controller_1.CompanyController.getCompanyBySlug);
+router.get('/public/:slug', (0, auth_1.default)(), requireVerifiedViewer_1.requireVerifiedViewer, company_controller_1.CompanyController.getCompanyBySlug);
 // ═══════════════════════════════════════════════════════════════════════════════
 // COMPANY AUTHENTICATED ROUTES
 // ═══════════════════════════════════════════════════════════════════════════════

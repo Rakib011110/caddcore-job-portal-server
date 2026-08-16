@@ -325,15 +325,15 @@ DELETE /api/job-applications/:id
 
 ```bash
 # 1. Create a job
-curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/jobs \
+curl -X POST http://localhost:5000/api/jobs \
   -H "Content-Type: application/json" \
   -d '{...job data from QUICK_API_TEST_EXAMPLES.js...}'
 
 # 2. Get all jobs
-curl https://caddcore-job-portal-server-code.vercel.app/api/jobs
+curl http://localhost:5000/api/jobs
 
 # 3. Apply for job with resume
-curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply \
+curl -X POST http://localhost:5000/api/job-applications/apply \
   -F "resume=@/path/to/resume.pdf" \
   -F "jobId=PASTE_JOB_ID" \
   -F "firstName=John" \

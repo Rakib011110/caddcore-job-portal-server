@@ -1,0 +1,250 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Resume = void 0;
+const mongoose_1 = require("mongoose");
+const resume_constant_1 = require("./resume.constant");
+const resume_templates_1 = require("./resume.templates");
+/**
+ * ═══════════════════════════════════════════════════════════════════════════════
+ * RESUME MODEL
+ * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * Sub-document fields mirror the User CV sub-schemas but are deliberately NOT
+ * `required`: a draft resume must be saveable half-finished. Completeness is
+ * enforced at submit time instead (see `assertSubmittable` in resume.service).
+ */
+// ─────────────────────────────────────────────────────────────────────────────
+// CV SUB-SCHEMAS
+// ─────────────────────────────────────────────────────────────────────────────
+const educationSchema = new mongoose_1.Schema({
+    degreeType: { type: String },
+    degreeName: { type: String },
+    institutionName: { type: String },
+    location: { type: String },
+    startYear: { type: Number },
+    endYear: { type: Number },
+    isCurrentlyStudying: { type: Boolean, default: false },
+    grade: { type: String },
+    description: { type: String },
+}, { _id: true });
+const workExperienceSchema = new mongoose_1.Schema({
+    jobTitle: { type: String },
+    companyName: { type: String },
+    companyLocation: { type: String },
+    employmentType: {
+        type: String,
+        enum: ['Full Time', 'Part Time', 'Contract', 'Internship', 'Freelance'],
+    },
+    startDate: { type: String },
+    endDate: { type: String },
+    isCurrentJob: { type: Boolean, default: false },
+    responsibilities: [{ type: String }],
+    achievements: [{ type: String }],
+    description: { type: String },
+}, { _id: true });
+const certificationSchema = new mongoose_1.Schema({
+    name: { type: String },
+    issuingOrganization: { type: String },
+    issueDate: { type: String },
+    expiryDate: { type: String },
+    credentialId: { type: String },
+    credentialUrl: { type: String },
+    description: { type: String },
+}, { _id: true });
+const skillSchema = new mongoose_1.Schema({
+    name: { type: String },
+    level: {
+        type: String,
+        enum: ['Beginner', 'Intermediate', 'Advanced', 'Expert'],
+    },
+    yearsOfExperience: { type: Number },
+    category: { type: String },
+}, { _id: true });
+const languageSchema = new mongoose_1.Schema({
+    name: { type: String },
+    proficiency: {
+        type: String,
+        enum: ['Basic', 'Conversational', 'Proficient', 'Fluent', 'Native'],
+    },
+}, { _id: true });
+const projectSchema = new mongoose_1.Schema({
+    title: { type: String },
+    description: { type: String },
+    role: { type: String },
+    technologies: [{ type: String }],
+    projectUrl: { type: String },
+    startDate: { type: String },
+    endDate: { type: String },
+    highlights: [{ type: String }],
+}, { _id: true });
+const awardSchema = new mongoose_1.Schema({
+    title: { type: String },
+    issuer: { type: String },
+    date: { type: String },
+    description: { type: String },
+}, { _id: true });
+const referenceSchema = new mongoose_1.Schema({
+    name: { type: String },
+    position: { type: String },
+    company: { type: String },
+    email: { type: String },
+    phone: { type: String },
+    relationship: { type: String },
+}, { _id: true });
+const socialLinksSchema = new mongoose_1.Schema({
+    linkedin: { type: String },
+    github: { type: String },
+    portfolio: { type: String },
+    twitter: { type: String },
+    website: { type: String },
+    other: [{ name: String, url: String }],
+}, { _id: false });
+// ─────────────────────────────────────────────────────────────────────────────
+// REVIEW HISTORY SUB-SCHEMA
+// ─────────────────────────────────────────────────────────────────────────────
+const reviewEntrySchema = new mongoose_1.Schema({
+    action: {
+        type: String,
+        enum: resume_constant_1.RESUME_REVIEW_ACTION_VALUES,
+        required: true,
+    },
+    status: {
+        type: String,
+        enum: resume_constant_1.RESUME_STATUS_VALUES,
+        required: true,
+    },
+    actorId: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    actorRole: { type: String },
+    feedback: { type: String, maxlength: 2000 },
+    version: { type: Number, default: 1 },
+    at: { type: Date, default: Date.now },
+}, { _id: false });
+// ─────────────────────────────────────────────────────────────────────────────
+// RESUME SCHEMA
+// ─────────────────────────────────────────────────────────────────────────────
+const resumeSchema = new mongoose_1.Schema({
+    userId: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        index: true,
+    },
+    title: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 120,
+        default: 'My Resume',
+    },
+    status: {
+        type: String,
+        enum: resume_constant_1.RESUME_STATUS_VALUES,
+        default: resume_constant_1.RESUME_STATUS.DRAFT,
+        index: true,
+    },
+    isDefault: { type: Boolean, default: false },
+    version: { type: Number, default: 0 },
+    // ═══════════════════════════════════════════════════════════════════════
+    // CONTACT BLOCK
+    // ═══════════════════════════════════════════════════════════════════════
+    fullName: { type: String, trim: true },
+    email: { type: String, trim: true },
+    phone: { type: String, trim: true },
+    address: { type: String },
+    city: { type: String },
+    country: { type: String },
+    profilePhoto: { type: String },
+    // ═══════════════════════════════════════════════════════════════════════
+    // PROFESSIONAL SUMMARY
+    // ═══════════════════════════════════════════════════════════════════════
+    headline: { type: String, maxlength: 200 },
+    summary: { type: String, maxlength: 3000 },
+    currentJobTitle: { type: String },
+    totalExperienceYears: { type: Number, min: 0 },
+    expectedSalary: { type: Number, min: 0 },
+    // ═══════════════════════════════════════════════════════════════════════
+    // CV SECTIONS
+    // ═══════════════════════════════════════════════════════════════════════
+    education: { type: [educationSchema], default: [] },
+    workExperience: { type: [workExperienceSchema], default: [] },
+    skills: { type: [skillSchema], default: [] },
+    certifications: { type: [certificationSchema], default: [] },
+    languages: { type: [languageSchema], default: [] },
+    projects: { type: [projectSchema], default: [] },
+    awards: { type: [awardSchema], default: [] },
+    references: { type: [referenceSchema], default: [] },
+    socialLinks: { type: socialLinksSchema, default: {} },
+    fileUrl: { type: String },
+    /**
+     * The CV format. Listed in `RESUME_CONTENT_FIELDS`, so changing it sends an
+     * approved resume back to draft - the reviewer approved a layout as much as
+     * a set of facts, and the employer receives that same layout.
+     */
+    template: {
+        type: String,
+        enum: resume_templates_1.RESUME_TEMPLATE_IDS,
+        default: resume_templates_1.DEFAULT_RESUME_TEMPLATE_ID,
+    },
+    /** Section order for the `custom` template; ignored by the others */
+    sectionOrder: { type: [String], default: undefined },
+    // ═══════════════════════════════════════════════════════════════════════
+    // REVIEW LIFECYCLE
+    // ═══════════════════════════════════════════════════════════════════════
+    submittedAt: { type: Date },
+    reviewedAt: { type: Date },
+    reviewedBy: { type: mongoose_1.Schema.Types.ObjectId, ref: 'User' },
+    rejectionReason: { type: String, maxlength: 2000 },
+    reviewerNotes: { type: String, maxlength: 2000 },
+    submissionNote: { type: String, maxlength: 1000 },
+    hasBeenApproved: { type: Boolean, default: false },
+    // ═══════════════════════════════════════════════════════════════════════
+    // RE-APPROVAL
+    // ═══════════════════════════════════════════════════════════════════════
+    /**
+     * Frozen copy of the content a reviewer last approved. `Mixed` because it
+     * mirrors the whole content shape and duplicating every sub-schema here
+     * would just be a second place to forget a field.
+     */
+    approvedContent: { type: mongoose_1.Schema.Types.Mixed, default: undefined },
+    approvedVersion: { type: Number },
+    /** Approved and usable, but holding edits a reviewer has not seen yet */
+    pendingReapproval: { type: Boolean, default: false },
+    /** Share of fields differing from `approvedContent`, 0-100 */
+    changeSinceApproval: { type: Number, default: 0 },
+    reviewHistory: { type: [reviewEntrySchema], default: [] },
+    // ═══════════════════════════════════════════════════════════════════════
+    // SOFT DELETE
+    // ═══════════════════════════════════════════════════════════════════════
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date },
+}, {
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+});
+// ─────────────────────────────────────────────────────────────────────────────
+// INDEXES
+// ─────────────────────────────────────────────────────────────────────────────
+// "Does this user have an approved resume?" - the job-application gate
+resumeSchema.index({ userId: 1, status: 1, isDeleted: 1 });
+// Admin review queue, oldest submission first
+resumeSchema.index({ status: 1, submittedAt: 1 });
+// User's resume list
+resumeSchema.index({ userId: 1, isDeleted: 1, updatedAt: -1 });
+// ─────────────────────────────────────────────────────────────────────────────
+// VIRTUALS
+// ─────────────────────────────────────────────────────────────────────────────
+resumeSchema.virtual('user', {
+    ref: 'User',
+    localField: 'userId',
+    foreignField: '_id',
+    justOne: true,
+});
+resumeSchema.virtual('reviewer', {
+    ref: 'User',
+    localField: 'reviewedBy',
+    foreignField: '_id',
+    justOne: true,
+});
+exports.Resume = (0, mongoose_1.model)('Resume', resumeSchema);
+//# sourceMappingURL=resume.model.js.map

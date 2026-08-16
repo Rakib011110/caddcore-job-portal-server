@@ -13,6 +13,8 @@ const verification_routes_1 = require("../app/modules/Verification/verification.
 const category_routes_1 = require("../app/modules/category/category.routes");
 const chat_routes_1 = require("../app/modules/Chat/chat.routes");
 const notification_routes_1 = require("../app/modules/Notification/notification.routes");
+const resume_routes_1 = require("../app/modules/Resume/resume.routes");
+const settings_routes_1 = require("../app/modules/Settings/settings.routes");
 const routes = (0, express_1.Router)();
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -79,6 +81,16 @@ const moduleRoutes = [
     {
         path: "/notifications",
         route: notification_routes_1.NotificationRoutes
+    },
+    // Resumes (Creation & Approval Workflow)
+    {
+        path: "/resumes",
+        route: resume_routes_1.ResumeRoutes
+    },
+    // System Settings
+    {
+        path: "/settings",
+        route: settings_routes_1.SettingsRoutes
     }
 ];
 moduleRoutes.forEach((route) => routes.use(route.path, route.route));

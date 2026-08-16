@@ -7,66 +7,76 @@ exports.ApplicationRoutes = void 0;
 const express_1 = __importDefault(require("express"));
 const Jobaplications_controller_1 = require("./Jobaplications.controller");
 const auth_1 = __importDefault(require("../../../middlewares/auth"));
+const application_access_1 = require("./application.access");
+const resume_export_controller_1 = require("../../Resume/resume.export.controller");
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
- * JOB APPLICATION ROUTES - Production Grade
+ * JOB APPLICATION ROUTES
  * ═══════════════════════════════════════════════════════════════════════════════
- * Complete API routes for application management with interview scheduling
+ *
+ * Every route here touches candidate PII and CV content, so none of them are
+ * public. Two layers protect them:
+ *
+ *   1. `auth(...)`  - is this role allowed near applications at all?
+ *   2. `guard*`     - is THIS viewer allowed near THIS application?
+ *
+ * The second layer is what lets COMPANY accounts in safely: they reach the same
+ * handlers as staff, but only ever for jobs their own company posted.
  */
 const router = express_1.default.Router();
+/** Roles that manage applications: platform staff plus employers. */
+const recruiterAuth = (0, auth_1.default)("ADMIN", "HR", "COMPANY");
+/** Staff-only actions that span the whole platform. */
+const staffAuth = (0, auth_1.default)("ADMIN", "HR");
 // ─────────────────────────────────────────────────────────────────────────────
-// PUBLIC ROUTES
+// CANDIDATE ROUTES
 // ─────────────────────────────────────────────────────────────────────────────
-// Get all applications (public - for admin without strict auth)
-router.get("/", Jobaplications_controller_1.ApplicationController.getAllApplications);
-// Search applications with filters
-router.get("/search", Jobaplications_controller_1.ApplicationController.searchApplications);
-// ─────────────────────────────────────────────────────────────────────────────
-// USER AUTHENTICATED ROUTES
-// ─────────────────────────────────────────────────────────────────────────────
-// Apply to a job (requires user login)
+// Apply to a job. The applicant is taken from the token, never the body.
 router.post("/apply", (0, auth_1.default)("USER", "ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.applyToJob);
-// Get my applications (authenticated user)
+// My own applications
 router.get("/my-applications", (0, auth_1.default)("USER", "ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.getMyApplications);
 // ─────────────────────────────────────────────────────────────────────────────
-// ADMIN/HR ROUTES
+// RECRUITER LISTS (scoped to the caller's company unless staff)
 // ─────────────────────────────────────────────────────────────────────────────
-// Get upcoming interviews (for admin dashboard)
-router.get("/interviews/upcoming", (0, auth_1.default)("ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.getUpcomingInterviews);
-// Get applications by user ID (admin only)
-router.get("/user/:userId", (0, auth_1.default)("ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.getApplicationsByUserId);
-// Get all applications for a specific job
-router.get("/job/:jobId", Jobaplications_controller_1.ApplicationController.getApplicationsByJob);
-// Get application count by status for a job
-router.get("/job/:jobId/count-by-status", Jobaplications_controller_1.ApplicationController.getApplicationCountByStatus);
-// Get total applications count for a job
-router.get("/job/:jobId/total-count", Jobaplications_controller_1.ApplicationController.getTotalApplicationsForJob);
-// Get single application by ID (with full timeline)
-router.get("/:id", Jobaplications_controller_1.ApplicationController.getApplicationById);
-// Get application with complete timeline
-router.get("/:id/timeline", Jobaplications_controller_1.ApplicationController.getApplicationWithTimeline);
+router.get("/", recruiterAuth, application_access_1.guardApplicationList, Jobaplications_controller_1.ApplicationController.getAllApplications);
+router.get("/search", recruiterAuth, application_access_1.guardApplicationList, Jobaplications_controller_1.ApplicationController.searchApplications);
+// Upcoming interviews for the dashboard
+router.get("/interviews/upcoming", recruiterAuth, application_access_1.guardApplicationList, Jobaplications_controller_1.ApplicationController.getUpcomingInterviews);
+// Every application from one candidate - staff only, it crosses company lines
+router.get("/user/:userId", staffAuth, Jobaplications_controller_1.ApplicationController.getApplicationsByUserId);
 // ─────────────────────────────────────────────────────────────────────────────
-// STATUS MANAGEMENT (Admin/HR Only)
+// PER-JOB ROUTES
 // ─────────────────────────────────────────────────────────────────────────────
-// Update application status (with email notification)
-router.patch("/:id/status", (0, auth_1.default)("ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.updateApplicationStatus);
-// Add internal notes to application
-router.patch("/:id/notes", (0, auth_1.default)("ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.addApplicationNotes);
+router.get("/job/:jobId", recruiterAuth, application_access_1.guardJobScope, Jobaplications_controller_1.ApplicationController.getApplicationsByJob);
+router.get("/job/:jobId/count-by-status", recruiterAuth, application_access_1.guardJobScope, Jobaplications_controller_1.ApplicationController.getApplicationCountByStatus);
+router.get("/job/:jobId/total-count", recruiterAuth, application_access_1.guardJobScope, Jobaplications_controller_1.ApplicationController.getTotalApplicationsForJob);
 // ─────────────────────────────────────────────────────────────────────────────
-// INTERVIEW SCHEDULING (Admin/HR Only)
+// PER-APPLICATION ROUTES
 // ─────────────────────────────────────────────────────────────────────────────
-// Schedule a new interview
-router.post("/:id/interview", (0, auth_1.default)("ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.scheduleInterview);
-// Reschedule an existing interview
-router.patch("/:id/interview/:interviewId/reschedule", (0, auth_1.default)("ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.rescheduleInterview);
-// Cancel an interview
-router.patch("/:id/interview/:interviewId/cancel", (0, auth_1.default)("ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.cancelInterview);
-// Submit interview feedback
-router.post("/:id/interview/:interviewId/feedback", (0, auth_1.default)("ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.submitInterviewFeedback);
+// `guardApplicationScope` also admits the candidate who owns the application,
+// so these double as the candidate's own detail endpoints.
+router.get("/:id", (0, auth_1.default)(), application_access_1.guardApplicationScope, Jobaplications_controller_1.ApplicationController.getApplicationById);
+router.get("/:id/timeline", (0, auth_1.default)(), application_access_1.guardApplicationScope, Jobaplications_controller_1.ApplicationController.getApplicationWithTimeline);
+// The CV exactly as it was approved when this application was sent
+router.get("/:id/resume", recruiterAuth, application_access_1.guardApplicationScope, Jobaplications_controller_1.ApplicationController.getApplicationResume);
+// Same CV as a document: `.pdf` downloads a file, the bare path returns the
+// HTML the preview frame embeds.
+router.get(["/:id/resume/export", "/:id/resume/export.pdf"], recruiterAuth, application_access_1.guardApplicationScope, resume_export_controller_1.ResumeExportControllers.exportApplicationResume);
 // ─────────────────────────────────────────────────────────────────────────────
-// DELETE (Admin/HR Only)
+// STATUS MANAGEMENT
 // ─────────────────────────────────────────────────────────────────────────────
-// Delete application
-router.delete("/:id", (0, auth_1.default)("ADMIN", "HR"), Jobaplications_controller_1.ApplicationController.deleteApplication);
+router.patch("/:id/status", recruiterAuth, application_access_1.guardApplicationScope, Jobaplications_controller_1.ApplicationController.updateApplicationStatus);
+router.patch("/:id/notes", recruiterAuth, application_access_1.guardApplicationScope, Jobaplications_controller_1.ApplicationController.addApplicationNotes);
+// ─────────────────────────────────────────────────────────────────────────────
+// INTERVIEW SCHEDULING
+// ─────────────────────────────────────────────────────────────────────────────
+router.post("/:id/interview", recruiterAuth, application_access_1.guardApplicationScope, Jobaplications_controller_1.ApplicationController.scheduleInterview);
+router.patch("/:id/interview/:interviewId/reschedule", recruiterAuth, application_access_1.guardApplicationScope, Jobaplications_controller_1.ApplicationController.rescheduleInterview);
+router.patch("/:id/interview/:interviewId/cancel", recruiterAuth, application_access_1.guardApplicationScope, Jobaplications_controller_1.ApplicationController.cancelInterview);
+router.post("/:id/interview/:interviewId/feedback", recruiterAuth, application_access_1.guardApplicationScope, Jobaplications_controller_1.ApplicationController.submitInterviewFeedback);
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE (staff only - companies close applications by status, not deletion)
+// ─────────────────────────────────────────────────────────────────────────────
+router.delete("/:id", staffAuth, Jobaplications_controller_1.ApplicationController.deleteApplication);
 exports.ApplicationRoutes = router;
 //# sourceMappingURL=jobaplication.routes.js.map

@@ -17,8 +17,8 @@ export declare const SMSValidation: {
             }>;
             applicationStatus: z.ZodEnum<{
                 PENDING: "PENDING";
-                REJECTED: "REJECTED";
                 APPROVED: "APPROVED";
+                REJECTED: "REJECTED";
             }>;
             interviewDate: z.ZodOptional<z.ZodString>;
             interviewTime: z.ZodOptional<z.ZodString>;

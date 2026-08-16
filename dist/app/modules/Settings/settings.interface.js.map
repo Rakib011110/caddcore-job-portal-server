@@ -1,0 +1,1 @@
+{"version":3,"file":"settings.interface.js","sourceRoot":"","sources":["../../../../src/app/modules/Settings/settings.interface.ts"],"names":[],"mappings":";;;AAEA;;;;;;;;;;;;;;;;;GAiBG;AAEH,gFAAgF;AAChF,cAAc;AACd,gFAAgF;AAEnE,QAAA,mBAAmB,GAAG;IACjC,OAAO,EAAE,SAAS;IAClB,MAAM,EAAE,QAAQ;IAChB,MAAM,EAAE,QAAQ;IAChB,IAAI,EAAE,MAAM;IACZ,IAAI,EAAE,MAAM;CACJ,CAAC"}

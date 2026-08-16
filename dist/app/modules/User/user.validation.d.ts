@@ -12,6 +12,7 @@ export declare const UserValidation: {
             nid: z.ZodOptional<z.ZodString>;
             profilePhoto: z.ZodOptional<z.ZodString>;
             address: z.ZodOptional<z.ZodString>;
+            studentId: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>;
     }, z.core.$strip>;
     updateUserValidationSchema: z.ZodObject<{
@@ -29,6 +30,7 @@ export declare const UserValidation: {
             nid: z.ZodOptional<z.ZodString>;
             profilePhoto: z.ZodOptional<z.ZodString>;
             address: z.ZodOptional<z.ZodString>;
+            studentId: z.ZodOptional<z.ZodString>;
             age: z.ZodOptional<z.ZodNumber>;
             cvUrl: z.ZodOptional<z.ZodString>;
             experienceCertificateUrl: z.ZodOptional<z.ZodString>;

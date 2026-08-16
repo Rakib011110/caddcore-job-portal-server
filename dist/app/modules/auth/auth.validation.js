@@ -26,6 +26,9 @@ const registerValidationSchema = zod_1.z.object({
         }),
         nid: zod_1.z.string().optional(),
         address: zod_1.z.string().optional(),
+        // Always optional here: "is a Student ID required?" is a runtime setting,
+        // so the check lives in the service layer, not in this static schema.
+        studentId: zod_1.z.string().optional(),
     }),
 });
 const loginValidationSchema = zod_1.z.object({

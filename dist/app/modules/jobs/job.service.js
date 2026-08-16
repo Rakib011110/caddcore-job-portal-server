@@ -3,6 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.uploadJobLogo = exports.getTotalJobsCount = exports.getJobsCountByCategory = exports.getFeaturedJobs = exports.getJobsByCompany = exports.deleteJob = exports.updateJob = exports.getSingleJobById = exports.getSingleJob = exports.getAllJobs = exports.createJob = void 0;
 const job_model_1 = require("./job.model");
 const jobAlertService_1 = require("../../utils/jobAlertService");
+/**
+ * Neutralise regex metacharacters so a filter value is matched literally.
+ *
+ * Company names really do contain them — "Sheltech Pvt. Ltd." has dots, which
+ * an unescaped regex would treat as "any character". Escaping keeps the match
+ * honest and keeps a hostile value from turning into a catastrophic pattern.
+ */
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 // Create a new job
 const createJob = async (payload) => {
     const result = await job_model_1.Job.create(payload);
@@ -32,6 +40,21 @@ const getAllJobs = async (filters) => {
     // Role-based filtering: Company users see only their own jobs
     if (filters?.companyId) {
         query.company = filters.companyId;
+    }
+    /**
+     * Filter to one employer — what the homepage "Companies hiring right now"
+     * cards link to.
+     *
+     * Matched on `companyName` rather than the `company` ref because the ref is
+     * only set on company-posted jobs; anything an admin creates carries the name
+     * alone. Exact and case-insensitive: the reader clicked a specific employer,
+     * so "Navana" must not drag in "Navana Real Estate".
+     */
+    if (filters?.companyName) {
+        query.companyName = {
+            $regex: `^${escapeRegex(String(filters.companyName).trim())}$`,
+            $options: 'i',
+        };
     }
     if (filters?.category)
         query.category = filters.category;

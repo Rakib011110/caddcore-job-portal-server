@@ -23,6 +23,13 @@ export declare const getTotalApplicationsForJob: (req: Request, res: Response, n
 export declare const getApplicationsByUserId: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 export declare const searchApplications: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 export declare const getMyApplications: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+/**
+ * The CV that came with this application, frozen as approved.
+ *
+ * Access is already settled by `guardApplicationScope` on the route, so this
+ * handler only has to fetch.
+ */
+export declare const getApplicationResume: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 export declare const ApplicationController: {
     applyToJob: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     updateApplicationStatus: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
@@ -42,5 +49,6 @@ export declare const ApplicationController: {
     getApplicationsByUserId: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     searchApplications: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     getMyApplications: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+    getApplicationResume: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 };
 //# sourceMappingURL=Jobaplications.controller.d.ts.map

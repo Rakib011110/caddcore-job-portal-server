@@ -236,8 +236,24 @@ const jobApplicationSchema = new Schema<IJobApplication>(
     // Metadata
     source: { type: String },
     referralCode: { type: String },
+    resumeId: { type: Schema.Types.ObjectId, ref: "Resume" },
     resumeVersion: { type: Number, default: 1 },
-    
+
+    /**
+     * Frozen copy of the CV as it was approved when this application was sent.
+     *
+     * `resumeId` points at a document the candidate keeps editing, so it cannot
+     * answer "what did we actually receive?". This can. Written once at apply
+     * time and never updated - `strict: false` keeps the whole approved shape
+     * without this schema having to mirror every resume field.
+     */
+    resumeSnapshot: {
+      type: Schema.Types.Mixed,
+      default: undefined,
+    },
+    /** Format the snapshot was approved in, so everyone renders it the same */
+    resumeTemplate: { type: String },
+
     // Activity Tracking
     appliedAt: { type: Date, default: Date.now },
     lastActivityAt: { type: Date, default: Date.now }

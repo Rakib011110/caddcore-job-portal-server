@@ -16,6 +16,17 @@ export declare const CompanyService: {
     updateMyCompany: (userId: string, payload: ICompanyUpdateInput) => Promise<ICompany | null>;
     getCompanyById: (id: string) => Promise<ICompany | null>;
     getCompanyBySlug: (slug: string) => Promise<ICompany | null>;
+    getPublicCompanyTeasers: (query: Record<string, unknown>) => Promise<{
+        companies: (import("mongoose").Document<unknown, {}, ICompany, {}, {}> & ICompany & Required<{
+            _id: Types.ObjectId | undefined;
+        }> & {
+            __v: number;
+        })[];
+        meta: {
+            limit: number;
+            total: number;
+        };
+    }>;
     getAllApprovedCompanies: (query: Record<string, unknown>) => Promise<{
         companies: (import("mongoose").Document<unknown, {}, ICompany, {}, {}> & ICompany & Required<{
             _id: Types.ObjectId | undefined;

@@ -4,7 +4,7 @@
  * This file contains all the API endpoints with complete JSON examples
  * for testing the Job Posting & Application System
  * 
- * Base URL: https://caddcore-job-portal-server-code.vercel.app/api
+ * Base URL: http://localhost:5000/api
  */
 
 // ============================================================
@@ -373,7 +373,7 @@ const GET_JOBS_BY_COMPANY_RESPONSE = {
  * - whyHireYou: string (optional)
  * 
  * Example using curl:
- * curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply \
+ * curl -X POST http://localhost:5000/api/job-applications/apply \
  *   -F "resume=@/path/to/resume.pdf" \
  *   -F "jobId=507f1f77bcf86cd799439011" \
  *   -F "firstName=John" \
@@ -474,7 +474,7 @@ const APPLY_JOB_RESPONSE = {
     "presentCountry": "Bangladesh",
     "resumeFileName": "user123_1700129400000.pdf",
     "resumePath": "/uploads/job-applications/user123_1700129400000.pdf",
-    "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
+    "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
     "technicalSkills": [
       "JavaScript",
       "TypeScript",
@@ -540,7 +540,7 @@ const GET_APPLICATIONS_FOR_JOB_RESPONSE = {
         "Problem Solving",
         "Team Work"
       ],
-      "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
+      "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
       "applicationStatus": "Pending",
       "appliedAt": "2024-11-16T12:00:00Z"
     },
@@ -578,7 +578,7 @@ const GET_APPLICATIONS_FOR_JOB_RESPONSE = {
         "Communication",
         "Mentoring"
       ],
-      "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user456_1700129500000.pdf",
+      "resumeUrl": "http://localhost:5000/uploads/job-applications/user456_1700129500000.pdf",
       "applicationStatus": "Shortlisted",
       "appliedAt": "2024-11-15T10:30:00Z"
     }
@@ -677,7 +677,7 @@ const GET_SINGLE_APPLICATION_RESPONSE = {
     "noticePeriod": "2 weeks",
     "resumeFileName": "user123_1700129400000.pdf",
     "resumePath": "/uploads/job-applications/user123_1700129400000.pdf",
-    "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
+    "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
     "applicationStatus": "Pending",
     "internalNotes": "Promising candidate, good tech background",
     "appliedAt": "2024-11-16T12:00:00Z",

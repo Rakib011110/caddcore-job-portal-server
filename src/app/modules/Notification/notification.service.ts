@@ -343,6 +343,74 @@ const notifyCompanyStatus = async (
 };
 
 /**
+ * Notify a candidate about their resume review outcome
+ */
+const notifyResumeStatus = async (
+  userId: string | Types.ObjectId,
+  status: 'SUBMITTED' | 'APPROVED' | 'REJECTED',
+  resumeTitle: string,
+  resumeId: string,
+  feedback?: string
+): Promise<INotification> => {
+  const statusInfo = {
+    SUBMITTED: {
+      type: NOTIFICATION_TYPES.RESUME_SUBMITTED,
+      title: 'Resume Submitted for Review',
+      message: `"${resumeTitle}" is pending approval. We will notify you once it has been reviewed.`,
+      priority: 'MEDIUM' as const,
+    },
+    APPROVED: {
+      type: NOTIFICATION_TYPES.RESUME_APPROVED,
+      title: '🎉 Resume Approved!',
+      message: `"${resumeTitle}" was approved. You can now apply for jobs.`,
+      priority: 'HIGH' as const,
+    },
+    REJECTED: {
+      type: NOTIFICATION_TYPES.RESUME_REJECTED,
+      title: 'Resume Needs Changes',
+      message: feedback
+        ? `"${resumeTitle}" was rejected: ${feedback}`
+        : `"${resumeTitle}" was rejected. Please review and submit it again.`,
+      priority: 'HIGH' as const,
+    },
+  };
+
+  const info = statusInfo[status];
+
+  return create({
+    userId,
+    type: info.type,
+    title: info.title,
+    message: info.message.slice(0, 500),
+    data: { resumeId },
+    link: `/user-profile/resumes/${resumeId}`,
+    priority: info.priority,
+  });
+};
+
+/**
+ * Notify reviewers that a resume is waiting in the approval queue
+ */
+const notifyReviewersOfResume = async (
+  reviewerIds: (string | Types.ObjectId)[],
+  candidateName: string,
+  resumeTitle: string,
+  resumeId: string
+): Promise<INotification[]> => {
+  if (reviewerIds.length === 0) return [];
+
+  return createBulk({
+    userIds: reviewerIds,
+    type: NOTIFICATION_TYPES.RESUME_SUBMITTED,
+    title: 'Resume Awaiting Review',
+    message: `${candidateName} submitted "${resumeTitle}" for approval`,
+    data: { resumeId },
+    link: `/admin/resumes?status=pending_review`,
+    priority: 'MEDIUM',
+  });
+};
+
+/**
  * Send welcome notification to new user
  */
 const notifyWelcome = async (
@@ -405,6 +473,8 @@ export const NotificationService = {
   notifyApplicationStatus,
   notifyNewApplication,
   notifyCompanyStatus,
+  notifyResumeStatus,
+  notifyReviewersOfResume,
   notifyWelcome,
   notifySystemAnnouncement,
 };

@@ -20,6 +20,11 @@ export type TRegisterUser = {
   password: string;
   role: keyof typeof USER_ROLE;
   address?: string;
+  /**
+   * Optional at the type level because whether it is actually required is a
+   * runtime decision - see the `registration.student_id_required` setting.
+   */
+  studentId?: string;
 };
 
 export type TForgotPassword = {

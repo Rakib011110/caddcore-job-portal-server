@@ -27,6 +27,7 @@
     "multer-storage-cloudinary": "^4.0.0",
     "next": "^16.0.1",
     "nodemailer": "^7.0.10",
+    "puppeteer": "^25.6.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "sitemap": "^9.0.0",

@@ -7,6 +7,10 @@ import { TLoginUser, TRegisterUser, TBulkRegisterUser } from './auth.interface';
 import AppError from '../../error/AppError';
 import config from '../../../config';
 import { User } from '../User/user.model';
+import {
+  resolveStudentIdForRegistration,
+  rethrowDuplicateStudentId,
+} from '../User/studentId';
 
 import crypto from 'crypto';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../../utils/emailSender';
@@ -34,16 +38,48 @@ if (existingUser) {
 // 2. Proceed to register new user
 payload.role = USER_ROLE.USER;
 
+// Enforces the `registration.student_id_required` setting and rejects an ID
+// that already belongs to another account. Returns the normalized value, or
+// undefined when no ID was given and none is required.
+const studentId = await resolveStudentIdForRegistration(payload.studentId);
+
 const verificationToken = crypto.randomBytes(32).toString('hex');
 const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
-const newUser = await User.create({
-  ...payload,
-  emailVerificationToken: verificationToken,
-  emailVerificationTokenExpires: verificationTokenExpires,
-});
+const newUser = await rethrowDuplicateStudentId(() =>
+  User.create({
+    ...payload,
+    // Explicitly unset rather than storing '' - an empty string would occupy
+    // the unique index and lock every later user out of registering without one.
+    studentId,
+    emailVerificationToken: verificationToken,
+    emailVerificationTokenExpires: verificationTokenExpires,
+  })
+);
 
-await sendVerificationEmail(newUser.email, verificationToken);
+/**
+ * Delivery is best-effort, deliberately.
+ *
+ * The account row is already committed by this point, so letting a mail
+ * failure throw produced the worst possible outcome: the caller saw an error
+ * and assumed nothing happened, while the account existed — and every retry
+ * then hit "already exists but is not verified", permanently bricking that
+ * email address. A bad SMTP password should not cost someone their signup.
+ *
+ * The caller is told delivery failed via `verificationEmailSent` so the UI can
+ * point at "resend verification", which is the route that *should* fail loudly
+ * because sending is the whole point of that request.
+ */
+let verificationEmailSent = true;
+try {
+  await sendVerificationEmail(newUser.email, verificationToken);
+} catch (error) {
+  verificationEmailSent = false;
+  console.error(
+    `Registration succeeded for ${newUser.email} but the verification email could not be sent:`,
+    error instanceof Error ? error.message : error
+  );
+}
 
 const jwtPayload = {
   _id: newUser._id,
@@ -74,6 +110,7 @@ const refreshToken = createToken(
 return {
   accessToken,
   refreshToken,
+  verificationEmailSent,
   user: {
     _id: newUser._id,
     name: newUser.name,
@@ -418,16 +455,28 @@ const bulkRegisterUsers = async (payload: TBulkRegisterUser) => {
       // Set default role if not provided
       userData.role = userData.role || USER_ROLE.USER;
 
+      // Admin-driven import, so the "required" setting is skipped - an admin
+      // adding accounts by hand should not be blocked by a rule aimed at public
+      // sign-ups. Uniqueness is still enforced: a reused Student ID lands in
+      // `errors` for that row while the rest of the batch continues.
+      const studentId = await resolveStudentIdForRegistration(
+        userData.studentId,
+        { skipRequiredCheck: true }
+      );
+
       // Generate verification token
       const verificationToken = crypto.randomBytes(32).toString('hex');
       const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
       // Create new user
-      const newUser = await User.create({
-        ...userData,
-        emailVerificationToken: verificationToken,
-        emailVerificationTokenExpires: verificationTokenExpires,
-      });
+      const newUser = await rethrowDuplicateStudentId(() =>
+        User.create({
+          ...userData,
+          studentId,
+          emailVerificationToken: verificationToken,
+          emailVerificationTokenExpires: verificationTokenExpires,
+        })
+      );
 
       // Send verification email
       // await sendVerificationEmail(newUser.email, verificationToken);

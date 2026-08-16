@@ -136,7 +136,23 @@ const getCompanyBySlug = catchAsync(async (req: Request, res: Response) => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GET ALL APPROVED COMPANIES (Public)
+// GET PUBLIC COMPANY TEASERS (Anonymous - homepage only)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getPublicCompanyTeasers = catchAsync(async (req: Request, res: Response) => {
+  const result = await CompanyService.getPublicCompanyTeasers(req.query);
+
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: 'Companies retrieved successfully',
+    meta: result.meta,
+    data: result.companies,
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GET ALL APPROVED COMPANIES (Members only)
 // ─────────────────────────────────────────────────────────────────────────────
 
 const getAllApprovedCompanies = catchAsync(async (req: Request, res: Response) => {
@@ -279,6 +295,7 @@ export const CompanyController = {
   updateMyCompany,
   getCompanyById,
   getCompanyBySlug,
+  getPublicCompanyTeasers,
   getAllApprovedCompanies,
   getAllCompaniesForAdmin,
   getPendingCompanies,

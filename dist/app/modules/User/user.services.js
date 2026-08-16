@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserServices = void 0;
 const user_model_1 = require("./user.model");
+const studentId_1 = require("./studentId");
 const verifyJWT_1 = require("../../utils/verifyJWT");
 const config_1 = __importDefault(require("../../../config"));
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -17,7 +18,11 @@ const mongoose_1 = __importDefault(require("mongoose"));
 // BASIC CRUD OPERATIONS
 // ─────────────────────────────────────────────────────────────────────────────
 const createUserIntoDB = async (payload) => {
-    const newUser = await user_model_1.User.create(payload);
+    // `/user/create-user` is a public route, so it is a second registration door
+    // and has to run the same Student ID gate as `/auth/register`. Skipping it
+    // here would leave `registration.student_id_required` trivially bypassable.
+    const studentId = await (0, studentId_1.resolveStudentIdForRegistration)(payload.studentId);
+    const newUser = await (0, studentId_1.rethrowDuplicateStudentId)(() => user_model_1.User.create({ ...payload, studentId }));
     return newUser;
 };
 const getAllUsersFromDb = async () => {
@@ -34,7 +39,23 @@ const getAUserFromDb = async (id) => {
 const updpateUserInDb = async (id, payload) => {
     // Update lastProfileUpdate
     payload.lastProfileUpdate = new Date();
-    const user = await user_model_1.User.findByIdAndUpdate(id, payload, { new: true }).select('-password');
+    // A Student ID is claimed once and then frozen. Without this, anyone could
+    // edit their profile to swap in a different ID after registering, which would
+    // defeat the one-ID-one-account rule the registration gate exists to enforce.
+    // Users who registered before the requirement existed can still add theirs,
+    // so the field is only writable while it is empty.
+    if ('studentId' in payload) {
+        const claimedStudentId = await (0, studentId_1.resolveStudentIdClaim)(id, payload.studentId);
+        // `undefined` means "leave the stored value alone", so the key is dropped
+        // rather than written - writing undefined would clear an existing ID.
+        if (claimedStudentId === undefined) {
+            delete payload.studentId;
+        }
+        else {
+            payload.studentId = claimedStudentId;
+        }
+    }
+    const user = await (0, studentId_1.rethrowDuplicateStudentId)(() => user_model_1.User.findByIdAndUpdate(id, payload, { new: true }).select('-password'));
     if (!user) {
         throw new Error("User not found");
     }
@@ -77,24 +98,6 @@ const uploadProfilePhoto = async (userId, file) => {
     if (!updatedUser) {
         throw new Error("User not found");
     }
-    return updatedUser;
-};
-// ─────────────────────────────────────────────────────────────────────────────
-// MEMBERSHIP
-// ─────────────────────────────────────────────────────────────────────────────
-const makeBaseMember = async (id, membershipData) => {
-    const user = await user_model_1.User.findById(id);
-    if (!user) {
-        throw new Error("User not found");
-    }
-    if (user.membershipId) {
-        throw new Error("User is already a BASE member");
-    }
-    let membershipId = membershipData.membershipId;
-    if (membershipId && typeof membershipId === 'string') {
-        membershipId = membershipId.trim() || undefined;
-    }
-    const updatedUser = await user_model_1.User.findByIdAndUpdate(id, { membershipId, updatedAt: new Date() }, { new: true }).select('-password');
     return updatedUser;
 };
 // ─────────────────────────────────────────────────────────────────────────────
@@ -313,8 +316,6 @@ exports.UserServices = {
     deleteUserFromDb,
     // Profile Photo
     uploadProfilePhoto,
-    // Membership
-    makeBaseMember,
     // Saved Jobs
     getSavedJobs,
     saveJob,

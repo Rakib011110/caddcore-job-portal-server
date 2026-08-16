@@ -16,6 +16,13 @@ import {
   EmailResult 
 } from "./applicationEmailService";
 import { NotificationService } from "../../Notification/notification.service";
+import { ResumeService } from "../../Resume/resume.service";
+import { Resume } from "../../Resume/resume.model";
+import {
+  buildResumeSnapshot,
+  isSnapshotStale,
+} from "../../Resume/resume.snapshot";
+import { DEFAULT_RESUME_TEMPLATE_ID } from "../../Resume/resume.templates";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -27,6 +34,30 @@ import { NotificationService } from "../../Notification/notification.service";
  * - Interview scheduling with reschedule support
  * - Non-blocking email sending
  */
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER: COMPANY SCOPING
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Narrow a query to applications for one company's jobs.
+ *
+ * Applications point at jobs, not companies, so every company-scoped list has
+ * to resolve the company's job ids first. Returning an empty `$in` for a company
+ * with no jobs is intentional - it yields no rows rather than every row.
+ */
+const scopeQueryToCompany = async (
+  query: Record<string, any>,
+  companyId?: string
+): Promise<Record<string, any>> => {
+  if (!companyId) return query;
+
+  const companyJobs = await Job.find({ company: companyId }).select("_id");
+  return {
+    ...query,
+    jobId: { $in: companyJobs.map((job: any) => job._id) },
+  };
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER: GET USER AND JOB DATA FOR EMAIL
@@ -70,14 +101,49 @@ export const applyToJob = async (
   payload: Partial<IJobApplication>,
   sendNotification: boolean = true
 ): Promise<any> => {
+  // ─────────────────────────────────────────────────────────────────────────
+  // RESUME APPROVAL GATE
+  // ─────────────────────────────────────────────────────────────────────────
+  // When `resume.approval_required` and
+  // `job_application.approved_resume_required` are both on, the candidate must
+  // have at least one APPROVED resume. Throws 403 with a user-facing reason.
+  const applicantId = payload.userId ? String(payload.userId) : '';
+
+  if (applicantId) {
+    await ResumeService.assertCanApplyForJobs(applicantId);
+  }
+
+  // Record which approved resume backed this application (if any).
+  //
+  // The id alone is not enough: the candidate can edit that resume tomorrow and
+  // a recruiter opening this application next week would see the new text. So
+  // the approved content is copied onto the application as well, and that copy
+  // is what everyone downstream reads.
+  const approvedResume = applicantId
+    ? await ResumeService.getApplicableResume(applicantId)
+    : null;
+
+  const resumeFields = approvedResume
+    ? (() => {
+        const snapshot = buildResumeSnapshot(approvedResume);
+        return {
+          resumeId: approvedResume._id,
+          resumeVersion: snapshot.version,
+          resumeSnapshot: snapshot,
+          resumeTemplate: snapshot.template,
+        };
+      })()
+    : {};
+
   const session = await mongoose.startSession();
-  
+
   try {
     session.startTransaction();
-    
+
     // Create application with initial status history
     const applicationData = {
       ...payload,
+      ...resumeFields,
       applicationStatus: 'Pending' as ApplicationStatusType,
       statusHistory: [{
         status: 'Pending' as ApplicationStatusType,
@@ -711,12 +777,18 @@ export const getApplicationsByUserId = async (userId: string) => {
 };
 
 export const searchApplications = async (query: any) => {
-  const searchQuery: any = {};
-  
+  let searchQuery: any = {};
+
   if (query.jobId) searchQuery.jobId = query.jobId;
   if (query.userId) searchQuery.userId = query.userId;
   if (query.applicationStatus) searchQuery.applicationStatus = query.applicationStatus;
-  
+
+  // Company scope wins over any jobId the caller asked for, so a company cannot
+  // widen its own search by passing another company's job id.
+  if (query.companyId) {
+    searchQuery = await scopeQueryToCompany(searchQuery, query.companyId);
+  }
+
   return JobApplication.find(searchQuery)
     .populate({
       path: "jobId",
@@ -735,19 +807,27 @@ export const searchApplications = async (query: any) => {
 // GET UPCOMING INTERVIEWS
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const getUpcomingInterviews = async (days: number = 7) => {
+export const getUpcomingInterviews = async (
+  days: number = 7,
+  companyId?: string
+) => {
   const now = new Date();
   const futureDate = new Date();
   futureDate.setDate(futureDate.getDate() + days);
-  
-  return JobApplication.find({
-    applicationStatus: 'Interview Scheduled',
-    'currentInterview.scheduledDate': {
-      $gte: now,
-      $lte: futureDate,
+
+  const query = await scopeQueryToCompany(
+    {
+      applicationStatus: 'Interview Scheduled',
+      'currentInterview.scheduledDate': {
+        $gte: now,
+        $lte: futureDate,
+      },
+      'currentInterview.status': 'Scheduled',
     },
-    'currentInterview.status': 'Scheduled',
-  })
+    companyId
+  );
+
+  return JobApplication.find(query)
   .populate({
     path: "jobId",
     model: "Job",
@@ -759,6 +839,104 @@ export const getUpcomingInterviews = async (days: number = 7) => {
     select: "name email mobileNumber profilePhoto"
   })
   .sort({ 'currentInterview.scheduledDate': 1 });
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SUBMITTED CV
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface IApplicationResumeResult {
+  applicationId: string;
+  /** `id` is the candidate's user id - needed to start a chat with them */
+  candidate: {
+    id?: string;
+    name?: string;
+    email?: string;
+    profilePhoto?: string;
+  };
+  job: { title?: string; companyName?: string };
+  appliedAt?: Date;
+  /** The CV exactly as approved when the candidate applied */
+  resume: Record<string, any>;
+  template: string;
+  version: number;
+  /** True when the candidate has edited their CV since applying */
+  candidateHasNewerVersion: boolean;
+  /**
+   * Applications created before snapshots existed have no frozen copy. We fall
+   * back to the live resume and say so, rather than showing nothing.
+   */
+  isLegacyFallback: boolean;
+}
+
+/**
+ * The CV a recruiter should look at for one application.
+ *
+ * Reads the frozen snapshot first. Only pre-snapshot applications fall back to
+ * the live resume document, and those are flagged so the UI can be honest about
+ * what it is showing.
+ */
+export const getApplicationResume = async (
+  applicationId: string
+): Promise<IApplicationResumeResult | null> => {
+  const application = await JobApplication.findById(applicationId)
+    .populate({ path: "jobId", model: "Job", select: "title companyName" })
+    .populate({
+      path: "userId",
+      model: "User",
+      select: "name email profilePhoto",
+    });
+
+  if (!application) return null;
+
+  const doc = application as any;
+  const snapshot = doc.resumeSnapshot;
+
+  // The live resume is only read to detect drift, never to render.
+  const liveResume = doc.resumeId
+    ? await Resume.findOne({ _id: doc.resumeId, isDeleted: false })
+    : null;
+
+  const common = {
+    applicationId: String(application._id),
+    candidate: {
+      // `exactOptionalPropertyTypes` is on: an absent id must be an absent key,
+      // not a key holding undefined.
+      ...(doc.userId?._id ? { id: String(doc.userId._id) } : {}),
+      name: doc.userId?.name,
+      email: doc.userId?.email,
+      profilePhoto: doc.userId?.profilePhoto,
+    },
+    job: {
+      title: doc.jobId?.title,
+      companyName: doc.jobId?.companyName,
+    },
+    appliedAt: doc.appliedAt,
+  };
+
+  if (snapshot) {
+    return {
+      ...common,
+      resume: snapshot,
+      template: doc.resumeTemplate || snapshot.template || DEFAULT_RESUME_TEMPLATE_ID,
+      version: snapshot.version ?? doc.resumeVersion ?? 1,
+      candidateHasNewerVersion: isSnapshotStale(snapshot, liveResume),
+      isLegacyFallback: false,
+    };
+  }
+
+  if (!liveResume) return null;
+
+  const rebuilt = buildResumeSnapshot(liveResume);
+
+  return {
+    ...common,
+    resume: rebuilt,
+    template: rebuilt.template,
+    version: rebuilt.version,
+    candidateHasNewerVersion: false,
+    isLegacyFallback: true,
+  };
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -783,4 +961,5 @@ export const ApplicationService = {
   getApplicationsByUserId,
   searchApplications,
   getUpcomingInterviews,
+  getApplicationResume,
 };

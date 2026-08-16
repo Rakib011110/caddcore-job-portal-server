@@ -5,7 +5,6 @@ export declare const UserControllers: {
     deleteUser: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     updateUser: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     uploadProfilePhoto: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
-    makeBaseMember: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     getSavedJobs: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     saveJob: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     unsaveJob: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;

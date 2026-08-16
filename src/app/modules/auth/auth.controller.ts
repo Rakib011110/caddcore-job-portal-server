@@ -10,7 +10,7 @@ const tokenBlacklist = new Set<string>();
 const registerUser = catchAsync(async (req, res) => {
     const result = await AuthServices.registerUser(req.body);
 
-    const {refreshToken, accessToken} = result;
+    const {refreshToken, accessToken, verificationEmailSent} = result;
 
     // Set secure HTTP-only cookies
     res.cookie('refreshToken', refreshToken, {
@@ -23,10 +23,14 @@ const registerUser = catchAsync(async (req, res) => {
     sendResponse(res, {
       statusCode: httpStatus.OK,
       success: true,
-      message: 'User registered successfully!',
+      // The account is created either way; only the email is in doubt.
+      message: verificationEmailSent
+        ? 'User registered successfully!'
+        : 'Account created, but we could not send the verification email. Please use "Resend verification email" to try again.',
       data: {
         accessToken,
         refreshToken,
+        verificationEmailSent,
       },
     });
 });

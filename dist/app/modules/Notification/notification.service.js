@@ -258,6 +258,59 @@ const notifyCompanyStatus = async (userId, status, reason) => {
     });
 };
 /**
+ * Notify a candidate about their resume review outcome
+ */
+const notifyResumeStatus = async (userId, status, resumeTitle, resumeId, feedback) => {
+    const statusInfo = {
+        SUBMITTED: {
+            type: notification_interface_1.NOTIFICATION_TYPES.RESUME_SUBMITTED,
+            title: 'Resume Submitted for Review',
+            message: `"${resumeTitle}" is pending approval. We will notify you once it has been reviewed.`,
+            priority: 'MEDIUM',
+        },
+        APPROVED: {
+            type: notification_interface_1.NOTIFICATION_TYPES.RESUME_APPROVED,
+            title: '🎉 Resume Approved!',
+            message: `"${resumeTitle}" was approved. You can now apply for jobs.`,
+            priority: 'HIGH',
+        },
+        REJECTED: {
+            type: notification_interface_1.NOTIFICATION_TYPES.RESUME_REJECTED,
+            title: 'Resume Needs Changes',
+            message: feedback
+                ? `"${resumeTitle}" was rejected: ${feedback}`
+                : `"${resumeTitle}" was rejected. Please review and submit it again.`,
+            priority: 'HIGH',
+        },
+    };
+    const info = statusInfo[status];
+    return create({
+        userId,
+        type: info.type,
+        title: info.title,
+        message: info.message.slice(0, 500),
+        data: { resumeId },
+        link: `/user-profile/resumes/${resumeId}`,
+        priority: info.priority,
+    });
+};
+/**
+ * Notify reviewers that a resume is waiting in the approval queue
+ */
+const notifyReviewersOfResume = async (reviewerIds, candidateName, resumeTitle, resumeId) => {
+    if (reviewerIds.length === 0)
+        return [];
+    return createBulk({
+        userIds: reviewerIds,
+        type: notification_interface_1.NOTIFICATION_TYPES.RESUME_SUBMITTED,
+        title: 'Resume Awaiting Review',
+        message: `${candidateName} submitted "${resumeTitle}" for approval`,
+        data: { resumeId },
+        link: `/admin/resumes?status=pending_review`,
+        priority: 'MEDIUM',
+    });
+};
+/**
  * Send welcome notification to new user
  */
 const notifyWelcome = async (userId, userName) => {
@@ -306,6 +359,8 @@ exports.NotificationService = {
     notifyApplicationStatus,
     notifyNewApplication,
     notifyCompanyStatus,
+    notifyResumeStatus,
+    notifyReviewersOfResume,
     notifyWelcome,
     notifySystemAnnouncement,
 };

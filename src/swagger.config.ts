@@ -22,7 +22,7 @@ const swaggerOptions: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: 'https://caddcore-job-portal-server-code.vercel.app/api',
+        url: 'http://localhost:5000/api',
         description: 'Development Server',
       },
     ],
@@ -66,7 +66,7 @@ export function setupSwagger(app: Express): void {
     res.send(swaggerSpec);
   });
 
-  console.log('📚 Swagger docs available at: https://caddcore-job-portal-server-code.vercel.app/api-docs');
+  console.log('📚 Swagger docs available at: http://localhost:5000/api-docs');
 }
 
 export default swaggerSpec;

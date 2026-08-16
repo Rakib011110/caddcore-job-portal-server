@@ -4,6 +4,7 @@ import { TForgotPassword, TResetPassword } from './auth.interface';
 export declare const registerUser: (payload: TRegisterUser) => Promise<{
     accessToken: string;
     refreshToken: string;
+    verificationEmailSent: boolean;
     user: {
         _id: string;
         name: string;
@@ -16,6 +17,7 @@ export declare const AuthServices: {
     registerUser: (payload: TRegisterUser) => Promise<{
         accessToken: string;
         refreshToken: string;
+        verificationEmailSent: boolean;
         user: {
             _id: string;
             name: string;

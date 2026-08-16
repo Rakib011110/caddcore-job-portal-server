@@ -9,7 +9,7 @@
 
 // /**
 //  * STEP 1: CREATE A JOB
-//  * POST https://caddcore-job-portal-server-code.vercel.app/api/jobs
+//  * POST http://localhost:5000/api/jobs
 //  * 
 //  * Copy this entire JSON and paste as raw body in Postman
 //  */
@@ -92,7 +92,7 @@
 
 // /**
 //  * STEP 2: APPLY FOR THE JOB (WITH RESUME)
-//  * POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply
+//  * POST http://localhost:5000/api/job-applications/apply
 //  * Content-Type: multipart/form-data
 //  * 
 //  * In Postman:
@@ -142,7 +142,7 @@
 
 // /**
 //  * STEP 3: VIEW ALL APPLICANTS FOR THE JOB
-//  * GET https://caddcore-job-portal-server-code.vercel.app/api/job-applications/job/[PASTE_JOB_ID_FROM_STEP_1_HERE]
+//  * GET http://localhost:5000/api/job-applications/job/[PASTE_JOB_ID_FROM_STEP_1_HERE]
 //  * 
 //  * This endpoint returns all candidates who applied with their details
 //  * Perfect for HR to review all applicants at once!
@@ -177,7 +177,7 @@
 //       "softSkills": ["Communication", "Problem Solving"],
 //       "linkedinProfile": "https://linkedin.com/in/ahmadkhan",
 //       "portfolioUrl": "https://ahmadkhan-portfolio.netlify.app",
-//       "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
+//       "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
 //       "applicationStatus": "Pending",
 //       "appliedAt": "2024-11-16T14:30:00Z"
 //     }
@@ -188,7 +188,7 @@
 
 // /**
 //  * STEP 4: UPDATE APPLICATION STATUS
-//  * PATCH https://caddcore-job-portal-server-code.vercel.app/api/job-applications/[PASTE_APPLICATION_ID_FROM_STEP_2_HERE]/status
+//  * PATCH http://localhost:5000/api/job-applications/[PASTE_APPLICATION_ID_FROM_STEP_2_HERE]/status
 //  * 
 //  * Use this when you want to shortlist, reject, or interview a candidate
 //  */
@@ -208,7 +208,7 @@
 
 // /**
 //  * STEP 5: ADD INTERNAL NOTES FOR HR
-//  * PATCH https://caddcore-job-portal-server-code.vercel.app/api/job-applications/[PASTE_APPLICATION_ID_HERE]/notes
+//  * PATCH http://localhost:5000/api/job-applications/[PASTE_APPLICATION_ID_HERE]/notes
 //  * 
 //  * Use this to communicate internally about candidates
 //  */
@@ -220,7 +220,7 @@
 
 // /**
 //  * STEP 6: GET APPLICATION STATISTICS
-//  * GET https://caddcore-job-portal-server-code.vercel.app/api/job-applications/job/[PASTE_JOB_ID_HERE]/count-by-status
+//  * GET http://localhost:5000/api/job-applications/job/[PASTE_JOB_ID_HERE]/count-by-status
 //  * 
 //  * Perfect for dashboard/analytics!
 //  */
@@ -248,32 +248,32 @@
 
 // /**
 //  * Search Applications with Filters
-//  * GET https://caddcore-job-portal-server-code.vercel.app/api/job-applications/search?jobId=JOB_ID&applicationStatus=Shortlisted
+//  * GET http://localhost:5000/api/job-applications/search?jobId=JOB_ID&applicationStatus=Shortlisted
 //  */
 
 // /**
 //  * Get Applications by Candidate Email
-//  * GET https://caddcore-job-portal-server-code.vercel.app/api/job-applications/email/ahmed.khan@example.com
+//  * GET http://localhost:5000/api/job-applications/email/ahmed.khan@example.com
 //  */
 
 // /**
 //  * Get Single Application Details
-//  * GET https://caddcore-job-portal-server-code.vercel.app/api/job-applications/[APPLICATION_ID]
+//  * GET http://localhost:5000/api/job-applications/[APPLICATION_ID]
 //  */
 
 // /**
 //  * Delete Application
-//  * DELETE https://caddcore-job-portal-server-code.vercel.app/api/job-applications/[APPLICATION_ID]
+//  * DELETE http://localhost:5000/api/job-applications/[APPLICATION_ID]
 //  */
 
 // /**
 //  * Get Jobs Count by Category (Analytics)
-//  * GET https://caddcore-job-portal-server-code.vercel.app/api/jobs/analytics/count-by-category
+//  * GET http://localhost:5000/api/jobs/analytics/count-by-category
 //  */
 
 // /**
 //  * Get Total Active Jobs Count
-//  * GET https://caddcore-job-portal-server-code.vercel.app/api/jobs/analytics/total-count
+//  * GET http://localhost:5000/api/jobs/analytics/total-count
 //  */
 
 // // ============================================================
@@ -282,7 +282,7 @@
 
 // /**
 //  * Example 2: Senior Backend Developer Job
-//  * POST https://caddcore-job-portal-server-code.vercel.app/api/jobs
+//  * POST http://localhost:5000/api/jobs
 //  */
 // {
 //   "title": "Senior Backend Developer (Node.js)",
@@ -355,7 +355,7 @@
 
 // /**
 //  * Example 3: UI/UX Designer Job
-//  * POST https://caddcore-job-portal-server-code.vercel.app/api/jobs
+//  * POST http://localhost:5000/api/jobs
 //  */
 // {
 //   "title": "UX/UI Designer",
@@ -472,36 +472,36 @@
 
 // 1. CREATE JOB
 //    - Copy Example 1 or 2 from above
-//    - POST to https://caddcore-job-portal-server-code.vercel.app/api/jobs
+//    - POST to http://localhost:5000/api/jobs
 //    - ✓ Save the returned _id
 
 // 2. GET ALL JOBS
-//    - GET https://caddcore-job-portal-server-code.vercel.app/api/jobs
+//    - GET http://localhost:5000/api/jobs
 //    - ✓ Should see your created job
 
 // 3. GET FEATURED JOBS
-//    - GET https://caddcore-job-portal-server-code.vercel.app/api/jobs/featured/list
+//    - GET http://localhost:5000/api/jobs/featured/list
 //    - ✓ Should see featured jobs
 
 // 4. APPLY FOR JOB (with resume)
-//    - POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply
+//    - POST http://localhost:5000/api/job-applications/apply
 //    - ✓ Upload a real PDF/DOC resume
 //    - ✓ Save the returned application _id
 
 // 5. VIEW ALL APPLICANTS
-//    - GET https://caddcore-job-portal-server-code.vercel.app/api/job-applications/job/[JOB_ID]
+//    - GET http://localhost:5000/api/job-applications/job/[JOB_ID]
 //    - ✓ Should see your application with all details
 
 // 6. UPDATE APPLICATION STATUS
-//    - PATCH https://caddcore-job-portal-server-code.vercel.app/api/job-applications/[APP_ID]/status
+//    - PATCH http://localhost:5000/api/job-applications/[APP_ID]/status
 //    - ✓ Change status to "Shortlisted"
 
 // 7. ADD NOTES
-//    - PATCH https://caddcore-job-portal-server-code.vercel.app/api/job-applications/[APP_ID]/notes
+//    - PATCH http://localhost:5000/api/job-applications/[APP_ID]/notes
 //    - ✓ Add some internal notes
 
 // 8. VIEW APPLICATION STATISTICS
-//    - GET https://caddcore-job-portal-server-code.vercel.app/api/job-applications/job/[JOB_ID]/count-by-status
+//    - GET http://localhost:5000/api/job-applications/job/[JOB_ID]/count-by-status
 //    - ✓ Should see status breakdown
 
 // All endpoints tested and working! ✅

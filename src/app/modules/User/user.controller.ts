@@ -216,32 +216,8 @@ const uploadProfilePhoto = catchAsync(async (req, res) => {
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MEMBERSHIP
-// ─────────────────────────────────────────────────────────────────────────────
-
-const makeBaseMember = catchAsync(async (req, res) => {
-  const userId = req.params.id;
-  
-  if (!userId) {
-    return sendResponse(res, {
-      success: false,
-      statusCode: httpStatus.BAD_REQUEST,
-      message: "User ID is required",
-      data: null,
-    });
-  }
-  
-  const membershipData = req.body;
-  const updatedUser = await UserServices.makeBaseMember(userId, membershipData);
-  
-  sendResponse(res, {
-    success: true,
-    statusCode: httpStatus.OK,
-    message: "User has been made a BASE member successfully",
-    data: updatedUser,
-  });
-});
+// `makeBaseMember` was removed with the BASE membership route — see the note at
+// the bottom of user.routes.ts.
 
 // ─────────────────────────────────────────────────────────────────────────────
 // SAVED JOBS
@@ -563,9 +539,6 @@ export const UserControllers = {
   
   // Profile Photo
   uploadProfilePhoto,
-  
-  // Membership
-  makeBaseMember,
   
   // Saved Jobs
   getSavedJobs,

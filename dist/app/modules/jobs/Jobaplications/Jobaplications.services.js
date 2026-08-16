@@ -3,12 +3,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ApplicationService = exports.getUpcomingInterviews = exports.searchApplications = exports.getApplicationsByUserId = exports.getTotalApplicationsForJob = exports.getApplicationCountByStatus = exports.deleteApplication = exports.addApplicationNotes = exports.getApplicationById = exports.getAllApplications = exports.getApplicationsByJob = exports.getApplicationWithTimeline = exports.submitInterviewFeedback = exports.cancelInterview = exports.rescheduleInterview = exports.scheduleInterview = exports.updateApplicationStatus = exports.applyToJob = void 0;
+exports.ApplicationService = exports.getApplicationResume = exports.getUpcomingInterviews = exports.searchApplications = exports.getApplicationsByUserId = exports.getTotalApplicationsForJob = exports.getApplicationCountByStatus = exports.deleteApplication = exports.addApplicationNotes = exports.getApplicationById = exports.getAllApplications = exports.getApplicationsByJob = exports.getApplicationWithTimeline = exports.submitInterviewFeedback = exports.cancelInterview = exports.rescheduleInterview = exports.scheduleInterview = exports.updateApplicationStatus = exports.applyToJob = void 0;
 const mongoose_1 = __importDefault(require("mongoose"));
 const Jobaplications_model_1 = require("./Jobaplications.model");
 const job_model_1 = require("../job.model");
 const applicationEmailService_1 = require("./applicationEmailService");
 const notification_service_1 = require("../../Notification/notification.service");
+const resume_service_1 = require("../../Resume/resume.service");
+const resume_model_1 = require("../../Resume/resume.model");
+const resume_snapshot_1 = require("../../Resume/resume.snapshot");
+const resume_templates_1 = require("../../Resume/resume.templates");
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * JOB APPLICATION SERVICE - Production Grade
@@ -19,6 +23,25 @@ const notification_service_1 = require("../../Notification/notification.service"
  * - Interview scheduling with reschedule support
  * - Non-blocking email sending
  */
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPER: COMPANY SCOPING
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * Narrow a query to applications for one company's jobs.
+ *
+ * Applications point at jobs, not companies, so every company-scoped list has
+ * to resolve the company's job ids first. Returning an empty `$in` for a company
+ * with no jobs is intentional - it yields no rows rather than every row.
+ */
+const scopeQueryToCompany = async (query, companyId) => {
+    if (!companyId)
+        return query;
+    const companyJobs = await job_model_1.Job.find({ company: companyId }).select("_id");
+    return {
+        ...query,
+        jobId: { $in: companyJobs.map((job) => job._id) },
+    };
+};
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER: GET USER AND JOB DATA FOR EMAIL
 // ─────────────────────────────────────────────────────────────────────────────
@@ -52,12 +75,43 @@ const getEmailDataFromApplication = async (application) => {
 // APPLY TO JOB
 // ─────────────────────────────────────────────────────────────────────────────
 const applyToJob = async (payload, sendNotification = true) => {
+    // ─────────────────────────────────────────────────────────────────────────
+    // RESUME APPROVAL GATE
+    // ─────────────────────────────────────────────────────────────────────────
+    // When `resume.approval_required` and
+    // `job_application.approved_resume_required` are both on, the candidate must
+    // have at least one APPROVED resume. Throws 403 with a user-facing reason.
+    const applicantId = payload.userId ? String(payload.userId) : '';
+    if (applicantId) {
+        await resume_service_1.ResumeService.assertCanApplyForJobs(applicantId);
+    }
+    // Record which approved resume backed this application (if any).
+    //
+    // The id alone is not enough: the candidate can edit that resume tomorrow and
+    // a recruiter opening this application next week would see the new text. So
+    // the approved content is copied onto the application as well, and that copy
+    // is what everyone downstream reads.
+    const approvedResume = applicantId
+        ? await resume_service_1.ResumeService.getApplicableResume(applicantId)
+        : null;
+    const resumeFields = approvedResume
+        ? (() => {
+            const snapshot = (0, resume_snapshot_1.buildResumeSnapshot)(approvedResume);
+            return {
+                resumeId: approvedResume._id,
+                resumeVersion: snapshot.version,
+                resumeSnapshot: snapshot,
+                resumeTemplate: snapshot.template,
+            };
+        })()
+        : {};
     const session = await mongoose_1.default.startSession();
     try {
         session.startTransaction();
         // Create application with initial status history
         const applicationData = {
             ...payload,
+            ...resumeFields,
             applicationStatus: 'Pending',
             statusHistory: [{
                     status: 'Pending',
@@ -557,13 +611,18 @@ const getApplicationsByUserId = async (userId) => {
 };
 exports.getApplicationsByUserId = getApplicationsByUserId;
 const searchApplications = async (query) => {
-    const searchQuery = {};
+    let searchQuery = {};
     if (query.jobId)
         searchQuery.jobId = query.jobId;
     if (query.userId)
         searchQuery.userId = query.userId;
     if (query.applicationStatus)
         searchQuery.applicationStatus = query.applicationStatus;
+    // Company scope wins over any jobId the caller asked for, so a company cannot
+    // widen its own search by passing another company's job id.
+    if (query.companyId) {
+        searchQuery = await scopeQueryToCompany(searchQuery, query.companyId);
+    }
     return Jobaplications_model_1.JobApplication.find(searchQuery)
         .populate({
         path: "jobId",
@@ -581,18 +640,19 @@ exports.searchApplications = searchApplications;
 // ─────────────────────────────────────────────────────────────────────────────
 // GET UPCOMING INTERVIEWS
 // ─────────────────────────────────────────────────────────────────────────────
-const getUpcomingInterviews = async (days = 7) => {
+const getUpcomingInterviews = async (days = 7, companyId) => {
     const now = new Date();
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + days);
-    return Jobaplications_model_1.JobApplication.find({
+    const query = await scopeQueryToCompany({
         applicationStatus: 'Interview Scheduled',
         'currentInterview.scheduledDate': {
             $gte: now,
             $lte: futureDate,
         },
         'currentInterview.status': 'Scheduled',
-    })
+    }, companyId);
+    return Jobaplications_model_1.JobApplication.find(query)
         .populate({
         path: "jobId",
         model: "Job",
@@ -606,6 +666,68 @@ const getUpcomingInterviews = async (days = 7) => {
         .sort({ 'currentInterview.scheduledDate': 1 });
 };
 exports.getUpcomingInterviews = getUpcomingInterviews;
+/**
+ * The CV a recruiter should look at for one application.
+ *
+ * Reads the frozen snapshot first. Only pre-snapshot applications fall back to
+ * the live resume document, and those are flagged so the UI can be honest about
+ * what it is showing.
+ */
+const getApplicationResume = async (applicationId) => {
+    const application = await Jobaplications_model_1.JobApplication.findById(applicationId)
+        .populate({ path: "jobId", model: "Job", select: "title companyName" })
+        .populate({
+        path: "userId",
+        model: "User",
+        select: "name email profilePhoto",
+    });
+    if (!application)
+        return null;
+    const doc = application;
+    const snapshot = doc.resumeSnapshot;
+    // The live resume is only read to detect drift, never to render.
+    const liveResume = doc.resumeId
+        ? await resume_model_1.Resume.findOne({ _id: doc.resumeId, isDeleted: false })
+        : null;
+    const common = {
+        applicationId: String(application._id),
+        candidate: {
+            // `exactOptionalPropertyTypes` is on: an absent id must be an absent key,
+            // not a key holding undefined.
+            ...(doc.userId?._id ? { id: String(doc.userId._id) } : {}),
+            name: doc.userId?.name,
+            email: doc.userId?.email,
+            profilePhoto: doc.userId?.profilePhoto,
+        },
+        job: {
+            title: doc.jobId?.title,
+            companyName: doc.jobId?.companyName,
+        },
+        appliedAt: doc.appliedAt,
+    };
+    if (snapshot) {
+        return {
+            ...common,
+            resume: snapshot,
+            template: doc.resumeTemplate || snapshot.template || resume_templates_1.DEFAULT_RESUME_TEMPLATE_ID,
+            version: snapshot.version ?? doc.resumeVersion ?? 1,
+            candidateHasNewerVersion: (0, resume_snapshot_1.isSnapshotStale)(snapshot, liveResume),
+            isLegacyFallback: false,
+        };
+    }
+    if (!liveResume)
+        return null;
+    const rebuilt = (0, resume_snapshot_1.buildResumeSnapshot)(liveResume);
+    return {
+        ...common,
+        resume: rebuilt,
+        template: rebuilt.template,
+        version: rebuilt.version,
+        candidateHasNewerVersion: false,
+        isLegacyFallback: true,
+    };
+};
+exports.getApplicationResume = getApplicationResume;
 // ─────────────────────────────────────────────────────────────────────────────
 // EXPORT SERVICE
 // ─────────────────────────────────────────────────────────────────────────────
@@ -627,5 +749,6 @@ exports.ApplicationService = {
     getApplicationsByUserId: exports.getApplicationsByUserId,
     searchApplications: exports.searchApplications,
     getUpcomingInterviews: exports.getUpcomingInterviews,
+    getApplicationResume: exports.getApplicationResume,
 };
 //# sourceMappingURL=Jobaplications.services.js.map

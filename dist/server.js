@@ -7,6 +7,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const app_1 = __importDefault(require("./app"));
 const config_1 = __importDefault(require("./config"));
 require("./config/cloudinary"); // Initialize Cloudinary
+const resume_pdf_1 = require("./app/modules/Resume/resume.pdf");
 let server;
 process.on('uncaughtException', (error) => {
     console.error('Uncaught Exception:', error);
@@ -39,28 +40,29 @@ async function bootstrap() {
     }
 }
 bootstrap();
-process.on('SIGTERM', () => {
-    console.log('SIGTERM received');
+/**
+ * Close the shared Chromium used for CV PDF export.
+ *
+ * It runs as a child process, so without this a restarted server leaves an
+ * orphaned browser holding a few hundred MB per restart.
+ */
+const shutdown = (signal) => {
+    console.log(`${signal} received`);
+    const exit = () => {
+        (0, resume_pdf_1.shutdownPdfEngine)()
+            .catch(() => undefined)
+            .finally(() => process.exit(0));
+    };
     if (server) {
         server.close(() => {
-            console.log('Server closed due to SIGTERM');
-            process.exit(0);
+            console.log(`Server closed due to ${signal}`);
+            exit();
         });
     }
     else {
-        process.exit(0);
+        exit();
     }
-});
-process.on('SIGINT', () => {
-    console.log('SIGINT received');
-    if (server) {
-        server.close(() => {
-            console.log('Server closed due to SIGINT');
-            process.exit(0);
-        });
-    }
-    else {
-        process.exit(0);
-    }
-});
+};
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 //# sourceMappingURL=server.js.map

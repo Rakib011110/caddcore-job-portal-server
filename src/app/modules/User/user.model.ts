@@ -136,7 +136,14 @@ const userSchema = new Schema<TUser, IUserModel>(
     password: { type: String, required: true, select: 0 },
     status: { type: String, enum: Object.keys(USER_STATUS), default: USER_STATUS.ACTIVE },
     mobileNumber: { type: String },
-    
+
+    // Self-reported CADD CORE Student ID (see user.interface.ts for the full
+    // contract). Normalized to trimmed uppercase so `cc-1234` and `CC-1234`
+    // collide instead of registering as two different students. Uniqueness is
+    // enforced by the partial index below, not by `unique: true` here - a plain
+    // unique index would reject a second user storing an explicit null.
+    studentId: { type: String, trim: true, uppercase: true },
+
     // Company reference (for COMPANY role users)
     companyId: { 
       type: Schema.Types.ObjectId, 
@@ -349,6 +356,20 @@ const userSchema = new Schema<TUser, IUserModel>(
 userSchema.index({ email: 1 });
 userSchema.index({ role: 1 });
 userSchema.index({ status: 1 });
+
+// One Student ID can only ever belong to one account. The partial filter keeps
+// every user who has no Student ID out of the index entirely, so existing
+// accounts (and any future ones registered while the requirement is off) never
+// collide with each other on a missing/null value.
+userSchema.index(
+  { studentId: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { studentId: { $type: 'string' } },
+    name: 'studentId_unique',
+  }
+);
+
 userSchema.index({ 'skills.name': 1 });
 userSchema.index({ 'education.institutionName': 1 });
 userSchema.index({ currentJobTitle: 'text', headline: 'text', summary: 'text' });

@@ -28,6 +28,8 @@ export declare const NotificationService: {
     notifyApplicationStatus: (userId: string | Types.ObjectId, status: "VIEWED" | "SHORTLISTED" | "REJECTED" | "SELECTED", jobTitle: string, applicationId: string, jobId?: string) => Promise<INotification>;
     notifyNewApplication: (companyUserId: string | Types.ObjectId, applicantName: string, jobTitle: string, applicationId: string, jobId: string) => Promise<INotification>;
     notifyCompanyStatus: (userId: string | Types.ObjectId, status: "APPROVED" | "REJECTED" | "SUSPENDED", reason?: string) => Promise<INotification>;
+    notifyResumeStatus: (userId: string | Types.ObjectId, status: "SUBMITTED" | "APPROVED" | "REJECTED", resumeTitle: string, resumeId: string, feedback?: string) => Promise<INotification>;
+    notifyReviewersOfResume: (reviewerIds: (string | Types.ObjectId)[], candidateName: string, resumeTitle: string, resumeId: string) => Promise<INotification[]>;
     notifyWelcome: (userId: string | Types.ObjectId, userName: string) => Promise<INotification>;
     notifySystemAnnouncement: (userIds: (string | Types.ObjectId)[], title: string, message: string, link?: string) => Promise<INotification[]>;
 };

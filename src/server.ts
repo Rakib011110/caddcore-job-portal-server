@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import app from './app';
 import config from './config';
 import './config/cloudinary'; // Initialize Cloudinary
+import { shutdownPdfEngine } from './app/modules/Resume/resume.pdf';
 
 let server: Server;
 
@@ -40,26 +41,30 @@ async function bootstrap() {
 
 bootstrap();
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received');
-  if (server) {
-    server.close(() => {
-      console.log('Server closed due to SIGTERM');
-      process.exit(0);
-    });
-  } else {
-    process.exit(0);
-  }
-});
+/**
+ * Close the shared Chromium used for CV PDF export.
+ *
+ * It runs as a child process, so without this a restarted server leaves an
+ * orphaned browser holding a few hundred MB per restart.
+ */
+const shutdown = (signal: string) => {
+  console.log(`${signal} received`);
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received');
+  const exit = () => {
+    shutdownPdfEngine()
+      .catch(() => undefined)
+      .finally(() => process.exit(0));
+  };
+
   if (server) {
     server.close(() => {
-      console.log('Server closed due to SIGINT');
-      process.exit(0);
+      console.log(`Server closed due to ${signal}`);
+      exit();
     });
   } else {
-    process.exit(0);
+    exit();
   }
-});
+};
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

@@ -12,6 +12,7 @@ const user_constant_1 = require("../User/user.constant");
 const AppError_1 = __importDefault(require("../../error/AppError"));
 const config_1 = __importDefault(require("../../../config"));
 const user_model_1 = require("../User/user.model");
+const studentId_1 = require("../User/studentId");
 const crypto_1 = __importDefault(require("crypto"));
 const emailSender_1 = require("../../utils/emailSender");
 // Add this to your existing imports
@@ -29,14 +30,41 @@ const registerUser = async (payload) => {
     }
     // 2. Proceed to register new user
     payload.role = user_constant_1.USER_ROLE.USER;
+    // Enforces the `registration.student_id_required` setting and rejects an ID
+    // that already belongs to another account. Returns the normalized value, or
+    // undefined when no ID was given and none is required.
+    const studentId = await (0, studentId_1.resolveStudentIdForRegistration)(payload.studentId);
     const verificationToken = crypto_1.default.randomBytes(32).toString('hex');
     const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    const newUser = await user_model_1.User.create({
+    const newUser = await (0, studentId_1.rethrowDuplicateStudentId)(() => user_model_1.User.create({
         ...payload,
+        // Explicitly unset rather than storing '' - an empty string would occupy
+        // the unique index and lock every later user out of registering without one.
+        studentId,
         emailVerificationToken: verificationToken,
         emailVerificationTokenExpires: verificationTokenExpires,
-    });
-    await (0, emailSender_1.sendVerificationEmail)(newUser.email, verificationToken);
+    }));
+    /**
+     * Delivery is best-effort, deliberately.
+     *
+     * The account row is already committed by this point, so letting a mail
+     * failure throw produced the worst possible outcome: the caller saw an error
+     * and assumed nothing happened, while the account existed — and every retry
+     * then hit "already exists but is not verified", permanently bricking that
+     * email address. A bad SMTP password should not cost someone their signup.
+     *
+     * The caller is told delivery failed via `verificationEmailSent` so the UI can
+     * point at "resend verification", which is the route that *should* fail loudly
+     * because sending is the whole point of that request.
+     */
+    let verificationEmailSent = true;
+    try {
+        await (0, emailSender_1.sendVerificationEmail)(newUser.email, verificationToken);
+    }
+    catch (error) {
+        verificationEmailSent = false;
+        console.error(`Registration succeeded for ${newUser.email} but the verification email could not be sent:`, error instanceof Error ? error.message : error);
+    }
     const jwtPayload = {
         _id: newUser._id,
         name: newUser.name,
@@ -55,6 +83,7 @@ const registerUser = async (payload) => {
     return {
         accessToken,
         refreshToken,
+        verificationEmailSent,
         user: {
             _id: newUser._id,
             name: newUser.name,
@@ -301,15 +330,21 @@ const bulkRegisterUsers = async (payload) => {
             }
             // Set default role if not provided
             userData.role = userData.role || user_constant_1.USER_ROLE.USER;
+            // Admin-driven import, so the "required" setting is skipped - an admin
+            // adding accounts by hand should not be blocked by a rule aimed at public
+            // sign-ups. Uniqueness is still enforced: a reused Student ID lands in
+            // `errors` for that row while the rest of the batch continues.
+            const studentId = await (0, studentId_1.resolveStudentIdForRegistration)(userData.studentId, { skipRequiredCheck: true });
             // Generate verification token
             const verificationToken = crypto_1.default.randomBytes(32).toString('hex');
             const verificationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
             // Create new user
-            const newUser = await user_model_1.User.create({
+            const newUser = await (0, studentId_1.rethrowDuplicateStudentId)(() => user_model_1.User.create({
                 ...userData,
+                studentId,
                 emailVerificationToken: verificationToken,
                 emailVerificationTokenExpires: verificationTokenExpires,
-            });
+            }));
             // Send verification email
             // await sendVerificationEmail(newUser.email, verificationToken);
             results.push({

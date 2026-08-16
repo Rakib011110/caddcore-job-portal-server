@@ -3,6 +3,7 @@ import { catchAsync } from "../../../utils/catchAsync";
 import sendResponse from "../../../utils/sendResponse";
 import { ApplicationService } from "./Jobaplications.services";
 import { IStatusUpdatePayload, IScheduleInterviewPayload } from "./Jobaplications.interfaces";
+import { resolveListCompanyId } from "./application.access";
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -16,19 +17,32 @@ import { IStatusUpdatePayload, IScheduleInterviewPayload } from "./Jobaplication
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const applyToJob = catchAsync(async (req: Request, res: Response) => {
-  const { jobId, userId, sendNotification = true } = req.body;
+  const { jobId, coverLetter, sendNotification = true } = req.body;
 
-  if (!jobId || !userId) {
+  // The applicant is whoever holds the token. Trusting `req.body.userId` here
+  // let any signed-in account submit applications in someone else's name.
+  const userId = (req as any).user?._id;
+
+  if (!userId) {
+    return sendResponse(res, {
+      statusCode: 401,
+      success: false,
+      message: "Authentication required",
+      data: null,
+    });
+  }
+
+  if (!jobId) {
     return sendResponse(res, {
       statusCode: 400,
       success: false,
-      message: "jobId and userId are required",
+      message: "jobId is required",
       data: null,
     });
   }
 
   const result = await ApplicationService.applyToJob(
-    { jobId, userId },
+    { jobId, userId, coverLetter },
     sendNotification
   );
   
@@ -322,8 +336,11 @@ export const getApplicationWithTimeline = catchAsync(async (req: Request, res: R
 
 export const getUpcomingInterviews = catchAsync(async (req: Request, res: Response) => {
   const days = parseInt(req.query.days as string) || 7;
-  const result = await ApplicationService.getUpcomingInterviews(days);
-  
+  // Undefined for staff, who see every company's interviews.
+  const companyId = resolveListCompanyId(req);
+
+  const result = await ApplicationService.getUpcomingInterviews(days, companyId);
+
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -358,10 +375,11 @@ export const getApplicationsByJob = catchAsync(async (req: Request, res: Respons
 });
 
 export const getAllApplications = catchAsync(async (req: Request, res: Response) => {
-  // Extract companyId from query params for role-based filtering
-  const { companyId } = req.query;
-  const filters = companyId ? { companyId: companyId as string } : undefined;
-  
+  // Never read `req.query.companyId` directly - a company account could pass
+  // another company's id. `resolveListCompanyId` pins non-staff to their own.
+  const companyId = resolveListCompanyId(req);
+  const filters = companyId ? { companyId } : undefined;
+
   const result = await ApplicationService.getAllApplications(filters);
   sendResponse(res, {
     statusCode: 200,
@@ -509,8 +527,13 @@ export const getApplicationsByUserId = catchAsync(async (req: Request, res: Resp
 });
 
 export const searchApplications = catchAsync(async (req: Request, res: Response) => {
-  const query = req.query;
-  const result = await ApplicationService.searchApplications(query);
+  const companyId = resolveListCompanyId(req);
+
+  // The resolved company overrides anything in the query string.
+  const result = await ApplicationService.searchApplications({
+    ...req.query,
+    companyId,
+  });
   sendResponse(res, {
     statusCode: 200,
     success: true,
@@ -541,6 +564,47 @@ export const getMyApplications = catchAsync(async (req: Request, res: Response) 
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// SUBMITTED CV
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The CV that came with this application, frozen as approved.
+ *
+ * Access is already settled by `guardApplicationScope` on the route, so this
+ * handler only has to fetch.
+ */
+export const getApplicationResume = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return sendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: "Application ID is required",
+      data: null,
+    });
+  }
+
+  const result = await ApplicationService.getApplicationResume(id);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: 404,
+      success: false,
+      message: "This application has no CV attached.",
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Submitted CV fetched successfully",
+    data: result,
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // EXPORT CONTROLLER
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -563,4 +627,5 @@ export const ApplicationController = {
   getApplicationsByUserId,
   searchApplications,
   getMyApplications,
+  getApplicationResume,
 };

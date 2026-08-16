@@ -1,4 +1,5 @@
 import { ObjectId } from "mongoose";
+import { IResumeSnapshot } from "../../Resume/resume.snapshot";
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * JOB APPLICATION INTERFACES - Production Grade
@@ -94,7 +95,18 @@ export interface IJobApplication {
     } | undefined;
     source?: string | undefined;
     referralCode?: string | undefined;
+    resumeId?: ObjectId | string | undefined;
     resumeVersion?: number | undefined;
+    /**
+     * Immutable copy of the approved CV, taken at apply time.
+     *
+     * Read this - not `resumeId` - when showing a recruiter what the candidate
+     * submitted. The resume document behind `resumeId` keeps changing; this does
+     * not. See `Resume/resume.snapshot.ts`.
+     */
+    resumeSnapshot?: IResumeSnapshot | undefined;
+    /** Template the snapshot was approved in */
+    resumeTemplate?: string | undefined;
     appliedAt?: Date | undefined;
     lastActivityAt?: Date | undefined;
     createdAt?: Date | undefined;

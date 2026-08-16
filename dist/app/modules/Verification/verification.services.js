@@ -10,6 +10,7 @@ const verification_constant_1 = require("./verification.constant");
 const AppError_1 = __importDefault(require("../../error/AppError"));
 const http_status_1 = __importDefault(require("http-status"));
 const mongoose_1 = __importDefault(require("mongoose"));
+const studentId_1 = require("../User/studentId");
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * VERIFICATION SERVICES
@@ -26,6 +27,33 @@ const applyForVerification = async (userId, data) => {
     const user = await user_model_1.User.findById(userId);
     if (!user) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'User not found');
+    }
+    // ───────────────────────────────────────────────────────────────────────────
+    // Reconcile the claimed Student ID with the account's own
+    // ───────────────────────────────────────────────────────────────────────────
+    //
+    // Two Student IDs can reach this point: the one locked to the account at
+    // registration (`user.studentId`) and the one typed into the verification
+    // form. The registration ID always wins - it is the one covered by the unique
+    // index, so letting a request claim a different ID would put an admin in the
+    // position of approving a badge for an identity the account does not hold.
+    const claimedStudentId = (0, studentId_1.normalizeStudentId)(data.studentId);
+    let studentId = user.studentId;
+    if (studentId && claimedStudentId && claimedStudentId !== studentId) {
+        throw new AppError_1.default(http_status_1.default.BAD_REQUEST, `This account is registered with Student ID ${studentId}. Please apply with that ID, or contact support if it is incorrect.`);
+    }
+    // Accounts created before the Student ID requirement have none stored, so a
+    // verification application is a valid place to claim one - subject to the
+    // same uniqueness rule as registration.
+    if (!studentId && claimedStudentId) {
+        const alreadyTaken = await user_model_1.User.exists({
+            studentId: claimedStudentId,
+            _id: { $ne: userId },
+        });
+        if (alreadyTaken) {
+            throw new AppError_1.default(http_status_1.default.CONFLICT, 'This Student ID is already registered to another account');
+        }
+        studentId = claimedStudentId;
     }
     // Check if user already has a pending or approved verification
     const existingRequest = await verification_model_1.VerificationRequest.findOne({
@@ -44,6 +72,8 @@ const applyForVerification = async (userId, data) => {
     const verificationRequest = await verification_model_1.VerificationRequest.create({
         userId,
         ...data,
+        // Overrides whatever `data` carried with the reconciled value above.
+        studentId,
         appliedAt: new Date(),
     });
     // Update user's verification status to pending
@@ -80,7 +110,10 @@ const updateVerificationRequest = async (requestId, userId, data) => {
     if (!request) {
         throw new AppError_1.default(http_status_1.default.NOT_FOUND, 'Verification request not found or cannot be updated');
     }
-    Object.assign(request, data);
+    // The Student ID was reconciled against the account when the request was
+    // created; editing a pending request must not be a way to swap it afterwards.
+    const { studentId: _ignoredStudentId, ...editableData } = data;
+    Object.assign(request, editableData);
     await request.save();
     return request;
 };
@@ -198,8 +231,14 @@ const approveVerification = async (requestId, adminId, data) => {
         await request.save({ session });
         // Calculate priority score
         const priorityScore = verification_constant_1.BADGE_PRIORITY_SCORES[data.badgeType] || 0;
-        // Update user's verification data
-        await user_model_1.User.findByIdAndUpdate(request.userId, {
+        // Update user's verification data.
+        //
+        // `caddcoreVerification.studentId` stays the admin-verified record. The
+        // top-level `studentId` is only back-filled when the account has none yet
+        // (pre-requirement accounts): approval is the point at which an admin has
+        // actually confirmed the ID, so it is safe to lock it in. Accounts that
+        // already have one keep it - applyForVerification guarantees the two match.
+        const verificationUpdate = {
             caddcoreVerification: {
                 isVerified: true,
                 verificationStatus: 'approved',
@@ -217,7 +256,17 @@ const approveVerification = async (requestId, adminId, data) => {
                 hasInternship: request.claimsInternship,
                 priorityScore,
             },
-        }, { session });
+        };
+        if (request.studentId) {
+            const applicant = await user_model_1.User.findById(request.userId)
+                .select('studentId')
+                .session(session)
+                .lean();
+            if (!applicant?.studentId) {
+                verificationUpdate.studentId = request.studentId;
+            }
+        }
+        await (0, studentId_1.rethrowDuplicateStudentId)(() => user_model_1.User.findByIdAndUpdate(request.userId, verificationUpdate, { session }));
         await session.commitTransaction();
         return request;
     }

@@ -124,7 +124,34 @@ const getCompanyBySlug = async (slug) => {
     return company;
 };
 // ─────────────────────────────────────────────────────────────────────────────
-// GET ALL COMPANIES (Public - Only approved)
+// TEASER (Truly public - marketing surface only)
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * The shop window: what an anonymous visitor may see of an approved company.
+ *
+ * Deliberately narrower than `getAllApprovedCompanies`. That one populates the
+ * owner's `email`, which is fine for a signed-in member browsing the directory
+ * and very much not fine on a page anyone can scrape. The teaser populates only
+ * `name` and `profilePhoto`, so the homepage can show a logo wall and a company
+ * count without publishing a list of employer email addresses.
+ *
+ * Anything richer belongs behind the directory gate.
+ */
+const getPublicCompanyTeasers = async (query) => {
+    const limit = Math.min(Number(query.limit) || 12, 24);
+    const filter = { status: company_constant_1.COMPANY_STATUS.APPROVED };
+    const [companies, total] = await Promise.all([
+        company_model_1.Company.find(filter)
+            .select('slug logo industry city isVerified activeJobs totalJobsPosted')
+            .populate('userId', 'name profilePhoto')
+            .sort({ createdAt: -1 })
+            .limit(limit),
+        company_model_1.Company.countDocuments(filter),
+    ]);
+    return { companies, meta: { limit, total } };
+};
+// ─────────────────────────────────────────────────────────────────────────────
+// GET ALL COMPANIES (Members only - Only approved)
 // ─────────────────────────────────────────────────────────────────────────────
 const getAllApprovedCompanies = async (query) => {
     const page = Number(query.page) || 1;
@@ -355,6 +382,7 @@ exports.CompanyService = {
     updateMyCompany,
     getCompanyById,
     getCompanyBySlug,
+    getPublicCompanyTeasers,
     getAllApprovedCompanies,
     getAllCompaniesForAdmin,
     getPendingCompanies,

@@ -2,6 +2,16 @@ import { TJobs } from "./job.interface";
 import { Job } from "./job.model";
 import { triggerJobAlerts } from "../../utils/jobAlertService";
 
+/**
+ * Neutralise regex metacharacters so a filter value is matched literally.
+ *
+ * Company names really do contain them — "Sheltech Pvt. Ltd." has dots, which
+ * an unescaped regex would treat as "any character". Escaping keeps the match
+ * honest and keeps a hostile value from turning into a catastrophic pattern.
+ */
+const escapeRegex = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 // Create a new job
 export const createJob = async (payload: TJobs) => {
   const result = await Job.create(payload);
@@ -37,6 +47,22 @@ export const getAllJobs = async (filters?: any) => {
     query.company = filters.companyId;
   }
   
+  /**
+   * Filter to one employer — what the homepage "Companies hiring right now"
+   * cards link to.
+   *
+   * Matched on `companyName` rather than the `company` ref because the ref is
+   * only set on company-posted jobs; anything an admin creates carries the name
+   * alone. Exact and case-insensitive: the reader clicked a specific employer,
+   * so "Navana" must not drag in "Navana Real Estate".
+   */
+  if (filters?.companyName) {
+    query.companyName = {
+      $regex: `^${escapeRegex(String(filters.companyName).trim())}$`,
+      $options: 'i',
+    };
+  }
+
   if (filters?.category) query.category = filters.category;
   if (filters?.subcategory) query.subcategory = filters.subcategory;
   if (filters?.categoryRef) query.categoryRef = filters.categoryRef;

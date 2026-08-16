@@ -41,7 +41,12 @@ export const NOTIFICATION_TYPES = {
   // User Related
   PROFILE_VERIFIED: 'PROFILE_VERIFIED',
   PROFILE_VIEW: 'PROFILE_VIEW',
-  
+
+  // Resume Approval
+  RESUME_SUBMITTED: 'RESUME_SUBMITTED',
+  RESUME_APPROVED: 'RESUME_APPROVED',
+  RESUME_REJECTED: 'RESUME_REJECTED',
+
   // System
   SYSTEM_ANNOUNCEMENT: 'SYSTEM_ANNOUNCEMENT',
   WELCOME: 'WELCOME',
@@ -178,6 +183,12 @@ export const getNotificationCategory = (type: TNotificationType): TNotificationC
   if (type === 'NEW_MESSAGE') return 'MESSAGE';
   if (type.startsWith('JOB_') || type === 'JOB_ALERT') return 'JOB';
   if (type.startsWith('APPLICATION_')) return 'APPLICATION';
-  if (type.startsWith('COMPANY_') || type.startsWith('PROFILE_')) return 'ACCOUNT';
+  if (
+    type.startsWith('COMPANY_') ||
+    type.startsWith('PROFILE_') ||
+    type.startsWith('RESUME_')
+  ) {
+    return 'ACCOUNT';
+  }
   return 'SYSTEM';
 };

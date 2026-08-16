@@ -87,7 +87,7 @@ npm install
 npm run dev
 ```
 
-Server runs on: `https://caddcore-job-portal-server-code.vercel.app`
+Server runs on: `http://localhost:5000`
 
 ---
 
@@ -96,7 +96,7 @@ Server runs on: `https://caddcore-job-portal-server-code.vercel.app`
 ### Base URL
 
 ```
-https://caddcore-job-portal-server-code.vercel.app/api
+http://localhost:5000/api
 ```
 
 ---
@@ -371,7 +371,7 @@ Content-Type: multipart/form-data
 **Example using cURL:**
 
 ```bash
-curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply \
+curl -X POST http://localhost:5000/api/job-applications/apply \
   -F "resume=@/path/to/resume.pdf" \
   -F "jobId=507f1f77bcf86cd799439011" \
   -F "firstName=John" \
@@ -414,7 +414,7 @@ curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applicat
     "presentCountry": "Bangladesh",
     "resumeFileName": "user123_1700129400000.pdf",
     "resumePath": "/uploads/job-applications/user123_1700129400000.pdf",
-    "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
+    "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
     "technicalSkills": ["JavaScript", "React.js", "Node.js", "MongoDB"],
     "softSkills": ["Communication", "Problem Solving", "Team Work"],
     "applicationStatus": "Pending",
@@ -469,7 +469,7 @@ curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applicat
         "MongoDB"
       ],
       "softSkills": ["Communication", "Problem Solving", "Team Work"],
-      "resumeUrl": "https://caddcore-job-portal-server-code.vercel.app/uploads/job-applications/user123_1700129400000.pdf",
+      "resumeUrl": "http://localhost:5000/uploads/job-applications/user123_1700129400000.pdf",
       "applicationStatus": "Pending",
       "appliedAt": "2024-11-16T12:00:00Z"
     },
@@ -645,15 +645,15 @@ curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applicat
 
 ```bash
 # 1. Create Job
-curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/jobs \
+curl -X POST http://localhost:5000/api/jobs \
   -H "Content-Type: application/json" \
   -d '{...job data...}'
 
 # 2. Get All Jobs
-curl https://caddcore-job-portal-server-code.vercel.app/api/jobs
+curl http://localhost:5000/api/jobs
 
 # 3. Apply for Job
-curl -X POST https://caddcore-job-portal-server-code.vercel.app/api/job-applications/apply \
+curl -X POST http://localhost:5000/api/job-applications/apply \
   -F "resume=@resume.pdf" \
   -F "jobId=..." \
   -F "firstName=John" \

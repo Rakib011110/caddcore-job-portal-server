@@ -59,11 +59,45 @@ export declare const searchApplications: (query: any) => Promise<(mongoose.Docum
 }> & {
     __v: number;
 })[]>;
-export declare const getUpcomingInterviews: (days?: number) => Promise<(mongoose.Document<unknown, {}, IJobApplication, {}, {}> & IJobApplication & Required<{
+export declare const getUpcomingInterviews: (days?: number, companyId?: string) => Promise<(mongoose.Document<unknown, {}, IJobApplication, {}, {}> & IJobApplication & Required<{
     _id: string | undefined;
 }> & {
     __v: number;
 })[]>;
+export interface IApplicationResumeResult {
+    applicationId: string;
+    /** `id` is the candidate's user id - needed to start a chat with them */
+    candidate: {
+        id?: string;
+        name?: string;
+        email?: string;
+        profilePhoto?: string;
+    };
+    job: {
+        title?: string;
+        companyName?: string;
+    };
+    appliedAt?: Date;
+    /** The CV exactly as approved when the candidate applied */
+    resume: Record<string, any>;
+    template: string;
+    version: number;
+    /** True when the candidate has edited their CV since applying */
+    candidateHasNewerVersion: boolean;
+    /**
+     * Applications created before snapshots existed have no frozen copy. We fall
+     * back to the live resume and say so, rather than showing nothing.
+     */
+    isLegacyFallback: boolean;
+}
+/**
+ * The CV a recruiter should look at for one application.
+ *
+ * Reads the frozen snapshot first. Only pre-snapshot applications fall back to
+ * the live resume document, and those are flagged so the UI can be honest about
+ * what it is showing.
+ */
+export declare const getApplicationResume: (applicationId: string) => Promise<IApplicationResumeResult | null>;
 export declare const ApplicationService: {
     applyToJob: (payload: Partial<IJobApplication>, sendNotification?: boolean) => Promise<any>;
     updateApplicationStatus: (payload: IStatusUpdatePayload) => Promise<any>;
@@ -124,10 +158,11 @@ export declare const ApplicationService: {
     }> & {
         __v: number;
     })[]>;
-    getUpcomingInterviews: (days?: number) => Promise<(mongoose.Document<unknown, {}, IJobApplication, {}, {}> & IJobApplication & Required<{
+    getUpcomingInterviews: (days?: number, companyId?: string) => Promise<(mongoose.Document<unknown, {}, IJobApplication, {}, {}> & IJobApplication & Required<{
         _id: string | undefined;
     }> & {
         __v: number;
     })[]>;
+    getApplicationResume: (applicationId: string) => Promise<IApplicationResumeResult | null>;
 };
 //# sourceMappingURL=Jobaplications.services.d.ts.map

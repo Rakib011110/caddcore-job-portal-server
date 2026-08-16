@@ -8,6 +8,7 @@ export declare const AuthValidation: {
             mobileNumber: z.ZodString;
             nid: z.ZodOptional<z.ZodString>;
             address: z.ZodOptional<z.ZodString>;
+            studentId: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>;
     }, z.core.$strip>;
     loginValidationSchema: z.ZodObject<{

@@ -13,7 +13,7 @@ const sendResponse_1 = __importDefault(require("../../utils/sendResponse"));
 const tokenBlacklist = new Set();
 const registerUser = (0, catchAsync_1.catchAsync)(async (req, res) => {
     const result = await auth_services_1.AuthServices.registerUser(req.body);
-    const { refreshToken, accessToken } = result;
+    const { refreshToken, accessToken, verificationEmailSent } = result;
     // Set secure HTTP-only cookies
     res.cookie('refreshToken', refreshToken, {
         secure: config_1.default.NODE_ENV === 'production',
@@ -24,10 +24,14 @@ const registerUser = (0, catchAsync_1.catchAsync)(async (req, res) => {
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_1.default.OK,
         success: true,
-        message: 'User registered successfully!',
+        // The account is created either way; only the email is in doubt.
+        message: verificationEmailSent
+            ? 'User registered successfully!'
+            : 'Account created, but we could not send the verification email. Please use "Resend verification email" to try again.',
         data: {
             accessToken,
             refreshToken,
+            verificationEmailSent,
         },
     });
 });

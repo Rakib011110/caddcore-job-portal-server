@@ -36,6 +36,7 @@ export declare const UserServices: {
             status: keyof typeof import("./user.constant").USER_STATUS;
             mobileNumber?: string;
             companyId?: mongoose.Types.ObjectId;
+            studentId?: string;
             passwordChangedAt?: Date;
             emailVerified?: boolean;
             emailVerificationToken?: string;
@@ -140,14 +141,6 @@ export declare const UserServices: {
     }> & {
         __v: number;
     }>;
-    makeBaseMember: (id: string, membershipData: {
-        membershipId?: string;
-        prefix?: string;
-    }) => Promise<(mongoose.Document<unknown, {}, TUser, {}, {}> & TUser & Required<{
-        _id: string;
-    }> & {
-        __v: number;
-    }) | null>;
     getSavedJobs: (userId: string) => Promise<mongoose.Types.ObjectId[]>;
     saveJob: (userId: string, jobId: string) => Promise<mongoose.Types.ObjectId[] | undefined>;
     unsaveJob: (userId: string, jobId: string) => Promise<mongoose.Types.ObjectId[] | undefined>;
@@ -175,6 +168,7 @@ export declare const UserServices: {
         status: keyof typeof import("./user.constant").USER_STATUS;
         mobileNumber?: string;
         companyId?: mongoose.Types.ObjectId;
+        studentId?: string;
         passwordChangedAt?: Date;
         emailVerified?: boolean;
         emailVerificationToken?: string;

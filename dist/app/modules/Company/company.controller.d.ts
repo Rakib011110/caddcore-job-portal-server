@@ -12,6 +12,7 @@ export declare const CompanyController: {
     updateMyCompany: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     getCompanyById: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     getCompanyBySlug: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+    getPublicCompanyTeasers: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     getAllApprovedCompanies: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     getAllCompaniesForAdmin: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     getPendingCompanies: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;

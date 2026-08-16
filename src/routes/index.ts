@@ -11,6 +11,8 @@ import { VerificationRoutes } from "../app/modules/Verification/verification.rou
 import { CategoryRoutes } from "../app/modules/category/category.routes";
 import { ChatRoutes } from "../app/modules/Chat/chat.routes";
 import { NotificationRoutes } from "../app/modules/Notification/notification.routes";
+import { ResumeRoutes } from "../app/modules/Resume/resume.routes";
+import { SettingsRoutes } from "../app/modules/Settings/settings.routes";
 
 const routes = Router();
 
@@ -91,6 +93,18 @@ const moduleRoutes = [
   {
     path: "/notifications",
     route: NotificationRoutes
+  },
+
+  // Resumes (Creation & Approval Workflow)
+  {
+    path: "/resumes",
+    route: ResumeRoutes
+  },
+
+  // System Settings
+  {
+    path: "/settings",
+    route: SettingsRoutes
   }
 ];
 
