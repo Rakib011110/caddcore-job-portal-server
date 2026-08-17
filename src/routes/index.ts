@@ -13,6 +13,9 @@ import { ChatRoutes } from "../app/modules/Chat/chat.routes";
 import { NotificationRoutes } from "../app/modules/Notification/notification.routes";
 import { ResumeRoutes } from "../app/modules/Resume/resume.routes";
 import { SettingsRoutes } from "../app/modules/Settings/settings.routes";
+import { EmployerFollowupRoutes } from "../app/modules/EmployerFollowup/employerFollowup.routes";
+import { ExportRoutes } from "../app/modules/export/export.routes";
+import { CronRoutes } from "../app/modules/cron/cron.routes";
 
 const routes = Router();
 
@@ -105,6 +108,24 @@ const moduleRoutes = [
   {
     path: "/settings",
     route: SettingsRoutes
+  },
+
+  // Employer Follow-up (Placement cell call log)
+  {
+    path: "/employer-followups",
+    route: EmployerFollowupRoutes
+  },
+
+  // Excel / .xlsx Report Exports
+  {
+    path: "/export",
+    route: ExportRoutes
+  },
+
+  // Scheduled jobs + the candidate six-month check-in link
+  {
+    path: "/cron",
+    route: CronRoutes
   }
 ];
 

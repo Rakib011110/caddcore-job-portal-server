@@ -5,5 +5,6 @@ export declare const AnalyticsControllers: {
     getApplicationStats: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     getDashboardData: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     getConversionMetrics: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
+    getMonthlyKPI: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
 };
 //# sourceMappingURL=analytics.controller.d.ts.map

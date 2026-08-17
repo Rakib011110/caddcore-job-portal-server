@@ -442,6 +442,57 @@ export const addApplicationNotes = catchAsync(async (req: Request, res: Response
   });
 });
 
+/**
+ * Record offer terms and the post-hire placement follow-up.
+ *
+ * Feeds the Placement Record report - joining date, salary, employment status,
+ * the 6-month check-in and whether any of it has been verified against the
+ * employer.
+ */
+export const updatePlacementDetails = catchAsync(async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  if (!id) {
+    return sendResponse(res, {
+      statusCode: 400,
+      success: false,
+      message: "Application ID is required",
+      data: null,
+    });
+  }
+
+  const staffId = (req as any).user?._id || (req as any).user?.id;
+  const result = await ApplicationService.updatePlacementDetails(id, req.body, staffId);
+
+  if (!result) {
+    return sendResponse(res, {
+      statusCode: 404,
+      success: false,
+      message: "Application not found",
+      data: null,
+    });
+  }
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Placement details updated successfully",
+    data: result,
+  });
+});
+
+/** Placement follow-ups that are due, and hires still missing a joining date. */
+export const getDuePlacementFollowups = catchAsync(async (_req: Request, res: Response) => {
+  const result = await ApplicationService.getDuePlacementFollowups();
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "Due placement follow-ups fetched successfully",
+    data: result,
+  });
+});
+
 export const deleteApplication = catchAsync(async (req: Request, res: Response) => {
   const { id } = req.params;
   
@@ -621,6 +672,8 @@ export const ApplicationController = {
   getAllApplications,
   getApplicationById,
   addApplicationNotes,
+  updatePlacementDetails,
+  getDuePlacementFollowups,
   deleteApplication,
   getApplicationCountByStatus,
   getTotalApplicationsForJob,

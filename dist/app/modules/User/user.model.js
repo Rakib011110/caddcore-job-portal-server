@@ -98,6 +98,33 @@ const socialLinksSchema = new mongoose_1.Schema({
     website: { type: String },
     other: [{ name: String, url: String }]
 }, { _id: false });
+/**
+ * The candidate's CADD CORE claim, entered in the CV builder.
+ *
+ * A real sub-schema rather than an inline object literal, and that distinction
+ * matters: an inline literal leaves the parent path untyped, so Mongoose will
+ * happily store a raw JSON STRING here if a caller forgets to parse it - and
+ * every later read of that user then throws. A Schema makes the cast explicit.
+ */
+const caddcoreCourseClaimSchema = new mongoose_1.Schema({
+    courseId: { type: String, required: true },
+    courseName: { type: String, required: true },
+    completionDate: { type: Date },
+    certificateUrl: { type: String },
+}, { _id: false });
+const caddcoreCredentialsSchema = new mongoose_1.Schema({
+    isCaddcoreStudent: { type: Boolean, default: false },
+    studentId: { type: String, trim: true, uppercase: true },
+    batchNo: { type: String, trim: true },
+    enrollmentYear: { type: Number },
+    courses: { type: [caddcoreCourseClaimSchema], default: [] },
+    hasOnJobTraining: { type: Boolean, default: false },
+    onJobTrainingDetails: { type: mongoose_1.Schema.Types.Mixed },
+    hasInternship: { type: Boolean, default: false },
+    internshipDetails: { type: mongoose_1.Schema.Types.Mixed },
+    proofDocuments: [{ type: String }],
+    candidateNotes: { type: String, maxlength: 1000 },
+}, { _id: false });
 const jobAlertPreferencesSchema = new mongoose_1.Schema({
     enabled: { type: Boolean, default: false },
     categories: [{ type: String }],
@@ -249,6 +276,11 @@ const userSchema = new mongoose_1.Schema({
     // ═══════════════════════════════════════════════════════════════════════
     membershipId: { type: String, unique: true, sparse: true },
     // ═══════════════════════════════════════════════════════════════════════
+    // PLACEMENT CELL (admin-owned - never written by the user)
+    // ═══════════════════════════════════════════════════════════════════════
+    department: { type: String, trim: true },
+    placementNotes: { type: String, maxlength: 2000 },
+    // ═══════════════════════════════════════════════════════════════════════
     // JOB PORTAL FEATURES
     // ═══════════════════════════════════════════════════════════════════════
     savedJobs: [{ type: mongoose_1.Schema.Types.ObjectId, ref: 'Job' }],
@@ -276,7 +308,11 @@ const userSchema = new mongoose_1.Schema({
             enum: ['Full Time', 'Part Time', 'Contract', 'Internship', 'Remote']
         }],
     // ═══════════════════════════════════════════════════════════════════════
-    // CADDCORE VERIFICATION
+    // CADDCORE CREDENTIALS (candidate's claim, entered in the CV builder)
+    // ═══════════════════════════════════════════════════════════════════════
+    caddcoreCredentials: { type: caddcoreCredentialsSchema },
+    // ═══════════════════════════════════════════════════════════════════════
+    // CADDCORE VERIFICATION (admin-granted result - never written by the user)
     // ═══════════════════════════════════════════════════════════════════════
     caddcoreVerification: {
         isVerified: { type: Boolean, default: false },

@@ -15,6 +15,13 @@ declare const _default: {
     email_pass: string | undefined;
     email_from: string | undefined;
     client_url: string | undefined;
+    /**
+     * Shared secret for POST /api/cron/run-daily.
+     *
+     * Unset means the secret route is closed and only an admin session can
+     * trigger a run - never "no secret required".
+     */
+    cron_secret: string | undefined;
     bulk_sms_api_key: string | undefined;
     bulk_sms_sender_id: string | undefined;
     bulk_sms_base_url: string | undefined;

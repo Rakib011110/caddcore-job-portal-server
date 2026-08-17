@@ -20,4 +20,7 @@ router.get("/jobs", auth("ADMIN", "HR"), AnalyticsControllers.getJobStats);
 router.get("/applications", auth("ADMIN", "HR"), AnalyticsControllers.getApplicationStats);
 router.get("/conversions", auth("ADMIN", "HR"), AnalyticsControllers.getConversionMetrics);
 
+// Month-by-month KPI table (?from=YYYY-MM-DD&to=YYYY-MM-DD, defaults to last 12 months)
+router.get("/monthly-kpi", auth("ADMIN", "HR"), AnalyticsControllers.getMonthlyKPI);
+
 export const AnalyticsRoutes = router;

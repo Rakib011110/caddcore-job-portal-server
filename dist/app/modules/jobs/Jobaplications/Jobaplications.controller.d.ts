@@ -17,6 +17,16 @@ export declare const getApplicationsByJob: (req: Request, res: Response, next: i
 export declare const getAllApplications: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 export declare const getApplicationById: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 export declare const addApplicationNotes: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+/**
+ * Record offer terms and the post-hire placement follow-up.
+ *
+ * Feeds the Placement Record report - joining date, salary, employment status,
+ * the 6-month check-in and whether any of it has been verified against the
+ * employer.
+ */
+export declare const updatePlacementDetails: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+/** Placement follow-ups that are due, and hires still missing a joining date. */
+export declare const getDuePlacementFollowups: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 export declare const deleteApplication: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 export declare const getApplicationCountByStatus: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
 export declare const getTotalApplicationsForJob: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
@@ -43,6 +53,8 @@ export declare const ApplicationController: {
     getAllApplications: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     getApplicationById: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     addApplicationNotes: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+    updatePlacementDetails: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
+    getDuePlacementFollowups: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     deleteApplication: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     getApplicationCountByStatus: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;
     getTotalApplicationsForJob: (req: Request, res: Response, next: import("express").NextFunction) => Promise<void>;

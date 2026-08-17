@@ -189,6 +189,17 @@ export type TUser = {
     affiliationValidTill?: Date;
     affiliationDocument?: string;
     membershipId?: string;
+    /**
+     * Fields the placement cell owns. They exist because the institute's tracking
+     * sheet has columns the portal had nowhere to put - the CADD CORE department
+     * a student belongs to, and the counsellor's running notes about them.
+     *
+     * Admin-only, both ways: the user profile forms never write these, and
+     * `placementNotes` is internal, so it must not be sent to the student or to
+     * an employer.
+     */
+    department?: string;
+    placementNotes?: string;
     savedJobs?: Types.ObjectId[];
     jobAlertPreferences?: IJobAlertPreferences;
     cvTemplate?: string;
@@ -200,6 +211,33 @@ export type TUser = {
     openToWorkUpdatedAt?: Date;
     availableFrom?: Date;
     preferredJobTypes?: ('Full Time' | 'Part Time' | 'Contract' | 'Internship' | 'Remote')[];
+    /**
+     * What the candidate says about their CADD CORE training, entered in the CV
+     * builder alongside the rest of their CV.
+     *
+     * This is a claim, not a fact. It is copied onto the resume when one is built
+     * and becomes true only when a reviewer approves that CV - at which point the
+     * badge lands in `caddcoreVerification` below. Keeping the two apart is what
+     * lets the claim be edited freely without touching a granted badge.
+     */
+    caddcoreCredentials?: {
+        isCaddcoreStudent?: boolean;
+        studentId?: string;
+        batchNo?: string;
+        enrollmentYear?: number;
+        courses?: Array<{
+            courseId: string;
+            courseName: string;
+            completionDate?: Date | string;
+            certificateUrl?: string;
+        }>;
+        hasOnJobTraining?: boolean;
+        onJobTrainingDetails?: Record<string, unknown>;
+        hasInternship?: boolean;
+        internshipDetails?: Record<string, unknown>;
+        proofDocuments?: string[];
+        candidateNotes?: string;
+    };
     caddcoreVerification?: {
         isVerified: boolean;
         verificationStatus: 'not_applied' | 'pending' | 'approved' | 'rejected';

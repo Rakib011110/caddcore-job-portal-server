@@ -10,6 +10,7 @@ export declare const ResumeControllers: {
     submitForReview: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     withdrawSubmission: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     getMyEligibility: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
+    getMyCvCompleteness: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     getPublicCandidateResume: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     getAllResumes: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;
     getResumeById: (req: import("express").Request, res: import("express").Response, next: import("express").NextFunction) => Promise<void>;

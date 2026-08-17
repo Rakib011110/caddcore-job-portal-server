@@ -30,6 +30,12 @@ export declare const SETTING_KEYS: {
     readonly RESUME_MAJOR_CHANGE_THRESHOLD: "resume.major_change_threshold";
     readonly JOB_APPLICATION_APPROVED_RESUME_REQUIRED: "job_application.approved_resume_required";
     readonly REGISTRATION_STUDENT_ID_REQUIRED: "registration.student_id_required";
+    readonly PROFILE_COMPLETENESS_ENABLED: "profile.completeness_enabled";
+    readonly PROFILE_COMPLETENESS_READY_THRESHOLD: "profile.completeness_ready_threshold";
+    readonly NOTIFICATIONS_ADMIN_DAILY_DIGEST: "notifications.admin_daily_digest";
+    readonly NOTIFICATIONS_ADMIN_DIGEST_RECIPIENTS: "notifications.admin_digest_recipients";
+    readonly NOTIFICATIONS_SIX_MONTH_CHECKIN: "notifications.six_month_checkin";
+    readonly NOTIFICATIONS_SIX_MONTH_REMINDER_DAYS: "notifications.six_month_reminder_days";
 };
 export type TSettingKey = (typeof SETTING_KEYS)[keyof typeof SETTING_KEYS];
 export declare const SETTINGS_REGISTRY: ISettingDefinition[];

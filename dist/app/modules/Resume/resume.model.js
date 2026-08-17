@@ -100,6 +100,50 @@ const socialLinksSchema = new mongoose_1.Schema({
     other: [{ name: String, url: String }],
 }, { _id: false });
 // ─────────────────────────────────────────────────────────────────────────────
+// CADD CORE CREDENTIALS SUB-SCHEMA
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * The candidate's CADD CORE credentials, attached to the CV.
+ *
+ * Replaces the standalone verification form: the reviewer approves the CV and
+ * grants the badge in one action, instead of the same student being approved
+ * twice for the same facts. `isCaddcoreStudent` gates the whole block, so a
+ * candidate who never studied here simply leaves it off and still gets a CV.
+ */
+const caddcoreCourseClaimSchema = new mongoose_1.Schema({
+    courseId: { type: String, required: true, trim: true },
+    courseName: { type: String, required: true, trim: true },
+    completionDate: { type: Date },
+    certificateUrl: { type: String, trim: true },
+}, { _id: false });
+const caddcoreCredentialsSchema = new mongoose_1.Schema({
+    isCaddcoreStudent: { type: Boolean, default: false },
+    studentId: { type: String, trim: true, uppercase: true },
+    batchNo: { type: String, trim: true },
+    enrollmentYear: { type: Number },
+    courses: { type: [caddcoreCourseClaimSchema], default: [] },
+    hasOnJobTraining: { type: Boolean, default: false },
+    onJobTrainingDetails: {
+        companyName: { type: String, trim: true },
+        startDate: { type: Date },
+        endDate: { type: Date },
+        supervisorName: { type: String, trim: true },
+        certificateUrl: { type: String, trim: true },
+        description: { type: String, maxlength: 1000 },
+    },
+    hasInternship: { type: Boolean, default: false },
+    internshipDetails: {
+        companyName: { type: String, trim: true },
+        position: { type: String, trim: true },
+        startDate: { type: Date },
+        endDate: { type: Date },
+        certificateUrl: { type: String, trim: true },
+        description: { type: String, maxlength: 1000 },
+    },
+    proofDocuments: { type: [String], default: [] },
+    candidateNotes: { type: String, maxlength: 1000 },
+}, { _id: false });
+// ─────────────────────────────────────────────────────────────────────────────
 // REVIEW HISTORY SUB-SCHEMA
 // ─────────────────────────────────────────────────────────────────────────────
 const reviewEntrySchema = new mongoose_1.Schema({
@@ -174,6 +218,8 @@ const resumeSchema = new mongoose_1.Schema({
     awards: { type: [awardSchema], default: [] },
     references: { type: [referenceSchema], default: [] },
     socialLinks: { type: socialLinksSchema, default: {} },
+    /** CADD CORE credentials - drives the badge granted on approval. */
+    caddcoreCredentials: { type: caddcoreCredentialsSchema, default: () => ({}) },
     fileUrl: { type: String },
     /**
      * The CV format. Listed in `RESUME_CONTENT_FIELDS`, so changing it sends an

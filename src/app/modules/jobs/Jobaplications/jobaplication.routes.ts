@@ -52,6 +52,10 @@ router.get("/search", recruiterAuth, guardApplicationList, ApplicationController
 // Upcoming interviews for the dashboard
 router.get("/interviews/upcoming", recruiterAuth, guardApplicationList, ApplicationController.getUpcomingInterviews);
 
+// Placement follow-ups due now, plus hires with no joining date recorded.
+// Above "/:id" so "placements" is not parsed as an application id.
+router.get("/placements/due", staffAuth, ApplicationController.getDuePlacementFollowups);
+
 // Every application from one candidate - staff only, it crosses company lines
 router.get("/user/:userId", staffAuth, ApplicationController.getApplicationsByUserId);
 
@@ -89,6 +93,20 @@ router.get(["/:id/resume/export", "/:id/resume/export.pdf"], recruiterAuth, guar
 router.patch("/:id/status", recruiterAuth, guardApplicationScope, ApplicationController.updateApplicationStatus);
 
 router.patch("/:id/notes", recruiterAuth, guardApplicationScope, ApplicationController.addApplicationNotes);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PLACEMENT RECORD
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Offer terms and post-hire tracking - joining date, salary, employment status,
+ * the 6-month follow-up and placement verification.
+ *
+ * `staffAuth` rather than `recruiterAuth`: this is the institute's own
+ * placement record, and the placement rate reported off it must not be
+ * something a hiring company can edit.
+ */
+router.patch("/:id/placement", staffAuth, ApplicationController.updatePlacementDetails);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INTERVIEW SCHEDULING

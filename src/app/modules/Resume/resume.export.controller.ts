@@ -249,17 +249,16 @@ export const exportPublicCandidateResume = catchAsync(
 /** Reviewer exporting a CV from the approval queue. */
 export const exportResumeForReview = catchAsync(
   async (req: Request, res: Response) => {
-    const resume = await ResumeService.getResumeById(req.params.id as string);
-    const template = resolveExportTemplate(req.query.template, resume);
-    const cv = resume.toObject();
+    // Already plain: the review lookup hands back the document spread with the
+    // reviewer's badge summary, not a hydrated document - nothing to convert.
+    const cv = await ResumeService.getResumeById(req.params.id as string);
+    const template = resolveExportTemplate(req.query.template, cv);
 
     await sendResumeDocument(req, res, cv, {
       template,
       documentTitle: resumeFileName(cv, template),
-      ...(resume.sectionOrder?.length
-        ? { sectionOrder: resume.sectionOrder }
-        : {}),
-      watermark: `Review copy · status: ${resume.status} · v${resume.version}`,
+      ...(cv.sectionOrder?.length ? { sectionOrder: cv.sectionOrder } : {}),
+      watermark: `Review copy · status: ${cv.status} · v${cv.version}`,
     });
   }
 );

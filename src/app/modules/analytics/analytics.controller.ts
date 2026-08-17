@@ -75,11 +75,26 @@ const getConversionMetrics = catchAsync(async (req, res) => {
   });
 });
 
+const getMonthlyKPI = catchAsync(async (req, res) => {
+  const data = await AnalyticsServices.getMonthlyKPI(
+    req.query.from as string | undefined,
+    req.query.to as string | undefined
+  );
+
+  sendResponse(res, {
+    success: true,
+    statusCode: httpStatus.OK,
+    message: "Monthly KPI fetched successfully",
+    data,
+  });
+});
+
 export const AnalyticsControllers = {
   getOverviewStats,
   getUserStats,
   getJobStats,
   getApplicationStats,
   getDashboardData,
-  getConversionMetrics
+  getConversionMetrics,
+  getMonthlyKPI
 };

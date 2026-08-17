@@ -751,6 +751,131 @@ export const addApplicationNotes = async (id: string, notes: string) => {
   ]);
 };
 
+/**
+ * Record the outcome of a hire: the offer terms and the placement follow-up.
+ *
+ * These two blocks had no write path at all before, which meant the Placement
+ * Record report could never show a joining date or a salary no matter what
+ * actually happened - the schema fields existed but nothing ever filled them.
+ *
+ * Written as a nested `$set` rather than a whole-object replace so updating one
+ * field (say, the 6-month follow-up) does not wipe the offer terms recorded
+ * months earlier.
+ */
+export const updatePlacementDetails = async (
+  id: string,
+  payload: {
+    offerDetails?: Record<string, unknown>;
+    placement?: Record<string, unknown>;
+    applicationMethod?: string;
+    followUpDate?: Date | string;
+    followUpStatus?: string;
+  },
+  updatedBy?: string
+) => {
+  const update: Record<string, unknown> = { lastActivityAt: new Date() };
+
+  for (const [key, value] of Object.entries(payload.offerDetails || {})) {
+    if (value !== undefined) update[`offerDetails.${key}`] = value;
+  }
+
+  /**
+   * The 6-month check-in schedules itself.
+   *
+   * Nobody should have to type "joining date plus six months" into a form, and
+   * if it is optional it simply never gets filled - which is how follow-ups get
+   * missed. Setting a joining date is the one moment the due date is knowable,
+   * so it is derived right there.
+   *
+   * Only ever set alongside a joining date, and only when the caller has not
+   * supplied one explicitly - a staff member who deliberately picked a
+   * different date keeps it.
+   */
+  const joiningDate = payload.offerDetails?.joiningDate;
+  if (joiningDate && payload.placement?.sixMonthFollowUpDate === undefined) {
+    const due = new Date(joiningDate as string | Date);
+    if (!Number.isNaN(due.getTime())) {
+      due.setMonth(due.getMonth() + 6);
+      update['placement.sixMonthFollowUpDate'] = due;
+    }
+  }
+
+  for (const [key, value] of Object.entries(payload.placement || {})) {
+    if (value !== undefined) update[`placement.${key}`] = value;
+  }
+
+  if (payload.applicationMethod) update.applicationMethod = payload.applicationMethod;
+  if (payload.followUpDate !== undefined) update.followUpDate = payload.followUpDate;
+  if (payload.followUpStatus) update.followUpStatus = payload.followUpStatus;
+
+  // Verification is an assertion about reality, so stamp who made it and when
+  // rather than trusting whatever the client sent for those two fields.
+  if (payload.placement?.verified === true) {
+    update['placement.verifiedAt'] = new Date();
+    if (updatedBy) update['placement.verifiedBy'] = updatedBy;
+  }
+
+  return JobApplication.findByIdAndUpdate(
+    id,
+    { $set: update },
+    { new: true, runValidators: true }
+  ).populate([
+    { path: "jobId", model: "Job", select: "title companyName" },
+    { path: "userId", model: "User", select: "name email studentId" }
+  ]);
+};
+
+/**
+ * Placements whose 6-month check-in is due, plus the hires that cannot be
+ * tracked at all yet because no joining date was ever recorded.
+ *
+ * Two lists rather than one, because they need different actions: the first
+ * needs someone to phone the employer, the second needs someone to fill in a
+ * date before the placement can be counted or followed up. Returning only the
+ * first would quietly hide every hire that was never completed.
+ */
+export const getDuePlacementFollowups = async () => {
+  const now = new Date();
+
+  const [due, missingJoiningDate] = await Promise.all([
+    JobApplication.find({
+      applicationStatus: { $in: ['Selected', 'Offer Accepted'] },
+      'placement.sixMonthFollowUpDate': { $lte: now },
+      // "Pending"/"Contacted" are still open; a confirmed or closed result is done.
+      $or: [
+        { 'placement.sixMonthFollowUpStatus': { $in: ['Pending', 'Contacted'] } },
+        { 'placement.sixMonthFollowUpStatus': { $exists: false } },
+      ],
+    })
+      .populate([
+        { path: 'jobId', model: 'Job', select: 'title companyName' },
+        { path: 'userId', model: 'User', select: 'name email mobileNumber studentId' },
+      ])
+      .sort({ 'placement.sixMonthFollowUpDate': 1 })
+      .limit(100),
+
+    JobApplication.find({
+      applicationStatus: { $in: ['Selected', 'Offer Accepted'] },
+      $or: [
+        { 'offerDetails.joiningDate': { $exists: false } },
+        { 'offerDetails.joiningDate': null },
+      ],
+    })
+      .populate([
+        { path: 'jobId', model: 'Job', select: 'title companyName' },
+        { path: 'userId', model: 'User', select: 'name email mobileNumber studentId' },
+      ])
+      .sort({ updatedAt: -1 })
+      .limit(100),
+  ]);
+
+  return {
+    due,
+    missingJoiningDate,
+    counts: { due: due.length, missingJoiningDate: missingJoiningDate.length },
+  };
+};
+
 export const deleteApplication = async (id: string) => {
   return JobApplication.findByIdAndDelete(id);
 };
@@ -955,6 +1080,8 @@ export const ApplicationService = {
   getAllApplications,
   getApplicationById,
   addApplicationNotes,
+  updatePlacementDetails,
+  getDuePlacementFollowups,
   deleteApplication,
   getApplicationCountByStatus,
   getTotalApplicationsForJob,

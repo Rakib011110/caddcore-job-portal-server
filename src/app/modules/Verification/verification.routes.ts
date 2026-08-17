@@ -8,45 +8,57 @@ const router = express.Router();
  * ═══════════════════════════════════════════════════════════════════════════════
  * VERIFICATION ROUTES
  * ═══════════════════════════════════════════════════════════════════════════════
+ *
+ * MERGED INTO CV APPROVAL
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Candidates no longer apply for verification separately. Their CADD CORE
+ * credentials are a section of the CV (`Resume.caddcoreCredentials`), and
+ * approving the CV grants the badge - see `Resume/resume.badge.ts`.
+ *
+ * What survives here:
+ *   - `/courses`, which the CV builder's credentials section reads
+ *   - the admin read endpoints, so historical requests stay auditable
+ *   - the Platinum upgrade, which fires when a candidate is placed
+ *
+ * The old apply/update/cancel endpoints are gone. They are deliberately NOT
+ * left as harmless no-ops: a submission through them would create a request in
+ * a queue nobody reviews any more, and the candidate would be left waiting for
+ * an approval that was never coming.
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PUBLIC ROUTES
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Get predefined CADDCORE courses list (no auth required)
+// The CADD CORE course list. Now read by the CV builder's credentials section.
 router.get('/courses', VerificationControllers.getCoursesList);
 
 // ─────────────────────────────────────────────────────────────────────────────
-// USER ROUTES (Authentication Required)
+// USER ROUTES
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Apply for verification
-router.post(
-  '/apply',
-  requireAuth,
-  VerificationControllers.applyForVerification
-);
+/**
+ * Kept so an old client, or a bookmarked page, gets a clear answer instead of a
+ * confusing 404. Points the caller at where the flow actually lives now.
+ */
+const movedToCv = (_req: express.Request, res: express.Response) => {
+  res.status(410).json({
+    success: false,
+    message:
+      'Verification is now part of CV approval. Add your CADD CORE credentials in the CV builder and submit your CV - approving it grants your badge.',
+    redirectTo: '/user-profile/cv-builder',
+  });
+};
 
-// Get my verification status
+router.post('/apply', requireAuth, movedToCv);
+router.put('/update/:id', requireAuth, movedToCv);
+router.delete('/cancel/:id', requireAuth, movedToCv);
+
+// Still live: reads the badge stored on the user, which the CV approval writes.
 router.get(
   '/my-status',
   requireAuth,
   VerificationControllers.getMyVerificationStatus
-);
-
-// Update pending verification request
-router.put(
-  '/update/:id',
-  requireAuth,
-  VerificationControllers.updateVerificationRequest
-);
-
-// Cancel pending verification request
-router.delete(
-  '/cancel/:id',
-  requireAuth,
-  VerificationControllers.cancelVerificationRequest
 );
 
 // ─────────────────────────────────────────────────────────────────────────────

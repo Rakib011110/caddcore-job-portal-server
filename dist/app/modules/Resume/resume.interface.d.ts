@@ -25,7 +25,60 @@ export interface IResumeReviewEntry {
     version: number;
     at: Date;
 }
+/** One CADD CORE course the candidate says they completed. */
+export interface ICaddcoreCourseClaim {
+    courseId: string;
+    courseName: string;
+    completionDate?: Date | string;
+    certificateUrl?: string;
+}
+/**
+ * The candidate's CADD CORE credentials, carried ON the CV.
+ *
+ * These used to live in a separate VerificationRequest with its own page, its
+ * own form and its own approval queue - so a student had to be approved twice,
+ * once for their CV and once to prove they studied here. The two reviews always
+ * looked at the same person and happened at the same time, so they are now one:
+ * the reviewer reads the CV, sees the credentials attached to it, and approving
+ * the CV grants the badge.
+ *
+ * `isCaddcoreStudent` is the whole gate. Left false the section is skipped, the
+ * CV is reviewed on its own merits and no badge is granted - which is what makes
+ * the portal usable by candidates who never studied here.
+ */
+export interface ICaddcoreCredentials {
+    /** Candidate's own claim that they studied at CADD CORE. */
+    isCaddcoreStudent?: boolean;
+    studentId?: string;
+    batchNo?: string;
+    enrollmentYear?: number;
+    courses?: ICaddcoreCourseClaim[];
+    hasOnJobTraining?: boolean;
+    onJobTrainingDetails?: {
+        companyName?: string;
+        startDate?: Date | string;
+        endDate?: Date | string;
+        supervisorName?: string;
+        certificateUrl?: string;
+        description?: string;
+    };
+    hasInternship?: boolean;
+    internshipDetails?: {
+        companyName?: string;
+        position?: string;
+        startDate?: Date | string;
+        endDate?: Date | string;
+        certificateUrl?: string;
+        description?: string;
+    };
+    /** Certificates and letters backing the claims above. */
+    proofDocuments?: string[];
+    /** Anything the candidate wants the reviewer to know. */
+    candidateNotes?: string;
+}
 export interface IResumeContent {
+    /** CADD CORE credentials - see ICaddcoreCredentials. */
+    caddcoreCredentials?: ICaddcoreCredentials;
     fullName?: string;
     email?: string;
     phone?: string;
@@ -126,6 +179,14 @@ export interface ISubmitResumePayload {
 }
 export interface IApproveResumePayload {
     reviewerNotes?: string;
+    /**
+     * Badge to grant, overriding the tier derived from the credentials.
+     *
+     * Omit to accept the suggestion. `'none'` approves the CV while granting no
+     * badge - the case where a reviewer believes the CV but not the CADD CORE
+     * claims attached to it.
+     */
+    badgeOverride?: 'bronze' | 'silver' | 'gold' | 'none';
 }
 export interface IRejectResumePayload {
     /** Optional per the spec - reviewers may reject without writing feedback */

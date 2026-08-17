@@ -98,6 +98,8 @@ export declare const UserServices: {
             affiliationValidTill?: Date;
             affiliationDocument?: string;
             membershipId?: string;
+            department?: string;
+            placementNotes?: string;
             savedJobs?: mongoose.Types.ObjectId[];
             jobAlertPreferences?: import("./user.interface").IJobAlertPreferences;
             cvTemplate?: string;
@@ -108,6 +110,24 @@ export declare const UserServices: {
             openToWorkUpdatedAt?: Date;
             availableFrom?: Date;
             preferredJobTypes?: ("Full Time" | "Part Time" | "Contract" | "Internship" | "Remote")[];
+            caddcoreCredentials?: {
+                isCaddcoreStudent?: boolean;
+                studentId?: string;
+                batchNo?: string;
+                enrollmentYear?: number;
+                courses?: Array<{
+                    courseId: string;
+                    courseName: string;
+                    completionDate?: Date | string;
+                    certificateUrl?: string;
+                }>;
+                hasOnJobTraining?: boolean;
+                onJobTrainingDetails?: Record<string, unknown>;
+                hasInternship?: boolean;
+                internshipDetails?: Record<string, unknown>;
+                proofDocuments?: string[];
+                candidateNotes?: string;
+            };
             caddcoreVerification?: {
                 isVerified: boolean;
                 verificationStatus: "not_applied" | "pending" | "approved" | "rejected";
@@ -230,6 +250,8 @@ export declare const UserServices: {
         affiliationValidTill?: Date;
         affiliationDocument?: string;
         membershipId?: string;
+        department?: string;
+        placementNotes?: string;
         savedJobs?: mongoose.Types.ObjectId[];
         jobAlertPreferences?: import("./user.interface").IJobAlertPreferences;
         cvTemplate?: string;
@@ -240,6 +262,24 @@ export declare const UserServices: {
         openToWorkUpdatedAt?: Date;
         availableFrom?: Date;
         preferredJobTypes?: ("Full Time" | "Part Time" | "Contract" | "Internship" | "Remote")[];
+        caddcoreCredentials?: {
+            isCaddcoreStudent?: boolean;
+            studentId?: string;
+            batchNo?: string;
+            enrollmentYear?: number;
+            courses?: Array<{
+                courseId: string;
+                courseName: string;
+                completionDate?: Date | string;
+                certificateUrl?: string;
+            }>;
+            hasOnJobTraining?: boolean;
+            onJobTrainingDetails?: Record<string, unknown>;
+            hasInternship?: boolean;
+            internshipDetails?: Record<string, unknown>;
+            proofDocuments?: string[];
+            candidateNotes?: string;
+        };
         caddcoreVerification?: {
             isVerified: boolean;
             verificationStatus: "not_applied" | "pending" | "approved" | "rejected";

@@ -92,6 +92,9 @@ router.patch(
 // Can I apply for jobs yet?
 router.get('/me/eligibility', requireAuth, ResumeControllers.getMyEligibility);
 
+// CV completeness for the candidate's progress bar
+router.get('/me/completeness', requireAuth, ResumeControllers.getMyCvCompleteness);
+
 // My working CV (created from my profile on first access)
 router.get('/me/primary', requireAuth, ResumeControllers.getPrimaryResume);
 

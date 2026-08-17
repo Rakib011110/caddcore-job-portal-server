@@ -43,5 +43,5 @@ export declare const ResumeSearchableFields: string[];
  * Fields that count as resume CONTENT. Editing any of these invalidates a prior
  * approval; editing anything else (title, isDefault) does not.
  */
-export declare const RESUME_CONTENT_FIELDS: readonly ["fullName", "email", "phone", "address", "city", "country", "profilePhoto", "headline", "summary", "currentJobTitle", "totalExperienceYears", "expectedSalary", "education", "workExperience", "skills", "certifications", "languages", "projects", "awards", "references", "socialLinks", "fileUrl", "template", "sectionOrder"];
+export declare const RESUME_CONTENT_FIELDS: readonly ["fullName", "email", "phone", "address", "city", "country", "profilePhoto", "headline", "summary", "currentJobTitle", "totalExperienceYears", "expectedSalary", "education", "workExperience", "skills", "certifications", "languages", "projects", "awards", "references", "socialLinks", "fileUrl", "template", "sectionOrder", "caddcoreCredentials"];
 //# sourceMappingURL=resume.constant.d.ts.map

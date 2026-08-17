@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ApplicationController = exports.getApplicationResume = exports.getMyApplications = exports.searchApplications = exports.getApplicationsByUserId = exports.getTotalApplicationsForJob = exports.getApplicationCountByStatus = exports.deleteApplication = exports.addApplicationNotes = exports.getApplicationById = exports.getAllApplications = exports.getApplicationsByJob = exports.getUpcomingInterviews = exports.getApplicationWithTimeline = exports.submitInterviewFeedback = exports.cancelInterview = exports.rescheduleInterview = exports.scheduleInterview = exports.updateApplicationStatus = exports.applyToJob = void 0;
+exports.ApplicationController = exports.getApplicationResume = exports.getMyApplications = exports.searchApplications = exports.getApplicationsByUserId = exports.getTotalApplicationsForJob = exports.getApplicationCountByStatus = exports.deleteApplication = exports.getDuePlacementFollowups = exports.updatePlacementDetails = exports.addApplicationNotes = exports.getApplicationById = exports.getAllApplications = exports.getApplicationsByJob = exports.getUpcomingInterviews = exports.getApplicationWithTimeline = exports.submitInterviewFeedback = exports.cancelInterview = exports.rescheduleInterview = exports.scheduleInterview = exports.updateApplicationStatus = exports.applyToJob = void 0;
 const catchAsync_1 = require("../../../utils/catchAsync");
 const sendResponse_1 = __importDefault(require("../../../utils/sendResponse"));
 const Jobaplications_services_1 = require("./Jobaplications.services");
@@ -343,6 +343,50 @@ exports.addApplicationNotes = (0, catchAsync_1.catchAsync)(async (req, res) => {
         data: result,
     });
 });
+/**
+ * Record offer terms and the post-hire placement follow-up.
+ *
+ * Feeds the Placement Record report - joining date, salary, employment status,
+ * the 6-month check-in and whether any of it has been verified against the
+ * employer.
+ */
+exports.updatePlacementDetails = (0, catchAsync_1.catchAsync)(async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        return (0, sendResponse_1.default)(res, {
+            statusCode: 400,
+            success: false,
+            message: "Application ID is required",
+            data: null,
+        });
+    }
+    const staffId = req.user?._id || req.user?.id;
+    const result = await Jobaplications_services_1.ApplicationService.updatePlacementDetails(id, req.body, staffId);
+    if (!result) {
+        return (0, sendResponse_1.default)(res, {
+            statusCode: 404,
+            success: false,
+            message: "Application not found",
+            data: null,
+        });
+    }
+    (0, sendResponse_1.default)(res, {
+        statusCode: 200,
+        success: true,
+        message: "Placement details updated successfully",
+        data: result,
+    });
+});
+/** Placement follow-ups that are due, and hires still missing a joining date. */
+exports.getDuePlacementFollowups = (0, catchAsync_1.catchAsync)(async (_req, res) => {
+    const result = await Jobaplications_services_1.ApplicationService.getDuePlacementFollowups();
+    (0, sendResponse_1.default)(res, {
+        statusCode: 200,
+        success: true,
+        message: "Due placement follow-ups fetched successfully",
+        data: result,
+    });
+});
 exports.deleteApplication = (0, catchAsync_1.catchAsync)(async (req, res) => {
     const { id } = req.params;
     if (!id) {
@@ -498,6 +542,8 @@ exports.ApplicationController = {
     getAllApplications: exports.getAllApplications,
     getApplicationById: exports.getApplicationById,
     addApplicationNotes: exports.addApplicationNotes,
+    updatePlacementDetails: exports.updatePlacementDetails,
+    getDuePlacementFollowups: exports.getDuePlacementFollowups,
     deleteApplication: exports.deleteApplication,
     getApplicationCountByStatus: exports.getApplicationCountByStatus,
     getTotalApplicationsForJob: exports.getTotalApplicationsForJob,

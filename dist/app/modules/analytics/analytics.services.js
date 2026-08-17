@@ -4,6 +4,7 @@ exports.AnalyticsServices = void 0;
 const user_model_1 = require("../User/user.model");
 const job_model_1 = require("../jobs/job.model");
 const Jobaplications_model_1 = require("../jobs/Jobaplications/Jobaplications.model");
+const employerFollowup_model_1 = require("../EmployerFollowup/employerFollowup.model");
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
  * ANALYTICS SERVICES - Admin Dashboard Statistics
@@ -245,12 +246,190 @@ const getConversionMetrics = async () => {
         }
     };
 };
+// ─────────────────────────────────────────────────────────────────────────────
+// MONTHLY KPI
+// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * One row per calendar month, matching the institute's KPI sheet.
+ *
+ * Two things here are easy to get wrong and are done deliberately:
+ *
+ *   - Every count is "created in that month", not "currently in that state".
+ *     A student who registered in March and was placed in June contributes to
+ *     March's registrations and June's placements. Counting current state per
+ *     month would make history change every time someone's status changed.
+ *
+ *   - Months with no activity still appear, as zero rows. A sheet that silently
+ *     skips July reads as "July is missing" rather than "July was quiet", and
+ *     the placement rate line on the chart would jump across the gap.
+ *
+ * `placementRate` is placements ÷ applications for that month, which is the
+ * definition the institute already reports on. It is not placements ÷ students.
+ */
+const getMonthlyKPI = async (from, to) => {
+    // Default window: the last 12 months, inclusive of the current one.
+    const end = to ? new Date(to) : new Date();
+    end.setHours(23, 59, 59, 999);
+    const start = from
+        ? new Date(from)
+        : new Date(end.getFullYear(), end.getMonth() - 11, 1);
+    start.setHours(0, 0, 0, 0);
+    /** Group a collection into { 'YYYY-MM': count } over the window. */
+    const countByMonth = async (model, dateField, extraMatch = {}) => {
+        const rows = await model.aggregate([
+            { $match: { [dateField]: { $gte: start, $lte: end }, ...extraMatch } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: '%Y-%m', date: `$${dateField}` } },
+                    count: { $sum: 1 }
+                }
+            }
+        ]);
+        return rows.reduce((acc, row) => {
+            acc[row._id] = row.count;
+            return acc;
+        }, {});
+    };
+    const [newStudents, jobReadyStudents, vacancies, applications, interviews, selected, placed, followupRows] = await Promise.all([
+        countByMonth(user_model_1.User, 'createdAt', { role: { $in: ['USER', 'STUDENT'] } }),
+        countByMonth(user_model_1.User, 'createdAt', {
+            role: { $in: ['USER', 'STUDENT'] },
+            profileCompleteness: { $gte: 80 }
+        }),
+        countByMonth(job_model_1.Job, 'createdAt'),
+        countByMonth(Jobaplications_model_1.JobApplication, 'appliedAt'),
+        // An interview counts in the month it was SCHEDULED FOR, not the month the
+        // application arrived - that is what the institute reports.
+        Jobaplications_model_1.JobApplication.aggregate([
+            { $unwind: '$interviews' },
+            { $match: { 'interviews.scheduledDate': { $gte: start, $lte: end } } },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: { format: '%Y-%m', date: '$interviews.scheduledDate' }
+                    },
+                    count: { $sum: 1 }
+                }
+            }
+        ]).then((rows) => rows.reduce((acc, row) => {
+            acc[row._id] = row.count;
+            return acc;
+        }, {})),
+        countByMonth(Jobaplications_model_1.JobApplication, 'updatedAt', { applicationStatus: 'Selected' }),
+        // "Placed" means an actual joining date was recorded, which is a stricter
+        // bar than "Selected" and is the number that goes in the annual report.
+        Jobaplications_model_1.JobApplication.aggregate([
+            {
+                $match: {
+                    'offerDetails.joiningDate': { $gte: start, $lte: end }
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        $dateToString: { format: '%Y-%m', date: '$offerDetails.joiningDate' }
+                    },
+                    count: { $sum: 1 }
+                }
+            }
+        ]).then((rows) => rows.reduce((acc, row) => {
+            acc[row._id] = row.count;
+            return acc;
+        }, {})),
+        // Distinct employers contacted per month - one employer called five times
+        // is still one employer.
+        employerFollowup_model_1.EmployerFollowup.aggregate([
+            { $match: { contactDate: { $gte: start, $lte: end } } },
+            {
+                $group: {
+                    _id: {
+                        month: { $dateToString: { format: '%Y-%m', date: '$contactDate' } },
+                        companyId: '$companyId'
+                    }
+                }
+            },
+            { $group: { _id: '$_id.month', count: { $sum: 1 } } }
+        ]).then((rows) => rows.reduce((acc, row) => {
+            acc[row._id] = row.count;
+            return acc;
+        }, {}))
+    ]);
+    // Active hiring employers: companies that posted at least one job that month.
+    const hiringEmployerRows = await job_model_1.Job.aggregate([
+        { $match: { createdAt: { $gte: start, $lte: end }, company: { $ne: null } } },
+        {
+            $group: {
+                _id: {
+                    month: { $dateToString: { format: '%Y-%m', date: '$createdAt' } },
+                    company: '$company'
+                }
+            }
+        },
+        { $group: { _id: '$_id.month', count: { $sum: 1 } } }
+    ]);
+    const activeHiringEmployers = hiringEmployerRows.reduce((acc, row) => {
+        acc[row._id] = row.count;
+        return acc;
+    }, {});
+    // Walk the window month by month so quiet months appear as zeros.
+    const months = [];
+    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+    while (cursor <= end) {
+        const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+        const monthApplications = applications[key] || 0;
+        const monthPlaced = placed[key] || 0;
+        months.push({
+            month: key,
+            label: cursor.toLocaleString('en-US', { month: 'short', year: 'numeric' }),
+            activeStudents: newStudents[key] || 0,
+            jobReadyStudents: jobReadyStudents[key] || 0,
+            employersContacted: followupRows[key] || 0,
+            activeHiringEmployers: activeHiringEmployers[key] || 0,
+            vacanciesCollected: vacancies[key] || 0,
+            applications: monthApplications,
+            interviews: interviews[key] || 0,
+            selected: selected[key] || 0,
+            placed: monthPlaced,
+            placementRate: monthApplications > 0
+                ? Number(((monthPlaced / monthApplications) * 100).toFixed(1))
+                : 0
+        });
+        cursor.setMonth(cursor.getMonth() + 1);
+    }
+    return {
+        from: start,
+        to: end,
+        months,
+        totals: months.reduce((acc, month) => ({
+            activeStudents: acc.activeStudents + month.activeStudents,
+            jobReadyStudents: acc.jobReadyStudents + month.jobReadyStudents,
+            employersContacted: acc.employersContacted + month.employersContacted,
+            activeHiringEmployers: acc.activeHiringEmployers + month.activeHiringEmployers,
+            vacanciesCollected: acc.vacanciesCollected + month.vacanciesCollected,
+            applications: acc.applications + month.applications,
+            interviews: acc.interviews + month.interviews,
+            selected: acc.selected + month.selected,
+            placed: acc.placed + month.placed
+        }), {
+            activeStudents: 0,
+            jobReadyStudents: 0,
+            employersContacted: 0,
+            activeHiringEmployers: 0,
+            vacanciesCollected: 0,
+            applications: 0,
+            interviews: 0,
+            selected: 0,
+            placed: 0
+        })
+    };
+};
 exports.AnalyticsServices = {
     getOverviewStats,
     getUserStats,
     getJobStats,
     getApplicationStats,
     getDashboardData,
-    getConversionMetrics
+    getConversionMetrics,
+    getMonthlyKPI
 };
 //# sourceMappingURL=analytics.services.js.map

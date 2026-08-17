@@ -117,5 +117,11 @@ export declare const AnalyticsServices: {
             rejected: number;
         };
     }>;
+    getMonthlyKPI: (from?: string, to?: string) => Promise<{
+        from: Date;
+        to: Date;
+        months: any[];
+        totals: any;
+    }>;
 };
 //# sourceMappingURL=analytics.services.d.ts.map

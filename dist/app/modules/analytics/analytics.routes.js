@@ -21,5 +21,7 @@ router.get("/users", (0, auth_1.default)("ADMIN", "HR"), analytics_controller_1.
 router.get("/jobs", (0, auth_1.default)("ADMIN", "HR"), analytics_controller_1.AnalyticsControllers.getJobStats);
 router.get("/applications", (0, auth_1.default)("ADMIN", "HR"), analytics_controller_1.AnalyticsControllers.getApplicationStats);
 router.get("/conversions", (0, auth_1.default)("ADMIN", "HR"), analytics_controller_1.AnalyticsControllers.getConversionMetrics);
+// Month-by-month KPI table (?from=YYYY-MM-DD&to=YYYY-MM-DD, defaults to last 12 months)
+router.get("/monthly-kpi", (0, auth_1.default)("ADMIN", "HR"), analytics_controller_1.AnalyticsControllers.getMonthlyKPI);
 exports.AnalyticsRoutes = router;
 //# sourceMappingURL=analytics.routes.js.map

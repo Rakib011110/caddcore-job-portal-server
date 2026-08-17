@@ -142,6 +142,17 @@ const withdrawSubmission = (0, catchAsync_1.catchAsync)(async (req, res) => {
     });
 });
 /** Can I apply for jobs yet? */
+/** CV completeness for the progress bar, with the next steps to fill in. */
+const getMyCvCompleteness = (0, catchAsync_1.catchAsync)(async (req, res) => {
+    const userId = getUserId(req);
+    const result = await resume_service_1.ResumeService.getCvCompleteness(userId);
+    (0, sendResponse_1.default)(res, {
+        success: true,
+        statusCode: http_status_1.default.OK,
+        message: 'CV completeness fetched successfully',
+        data: result,
+    });
+});
 const getMyEligibility = (0, catchAsync_1.catchAsync)(async (req, res) => {
     const userId = getUserId(req);
     const result = await resume_service_1.ResumeService.getEligibility(userId);
@@ -257,6 +268,7 @@ exports.ResumeControllers = {
     submitForReview,
     withdrawSubmission,
     getMyEligibility,
+    getMyCvCompleteness,
     // Public
     getPublicCandidateResume,
     // Admin

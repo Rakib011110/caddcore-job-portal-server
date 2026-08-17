@@ -23,6 +23,14 @@ export default {
   email_from: process.env.EMAIL_FROM,
   client_url: process.env.CLIENT_URL,
 
+  /**
+   * Shared secret for POST /api/cron/run-daily.
+   *
+   * Unset means the secret route is closed and only an admin session can
+   * trigger a run - never "no secret required".
+   */
+  cron_secret: process.env.CRON_SECRET,
+
   // Bulk SMS Configuration
   bulk_sms_api_key: process.env.BULK_SMS_API_KEY,
   bulk_sms_sender_id: process.env.BULK_SMS_SENDER_ID,

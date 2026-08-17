@@ -184,6 +184,55 @@ const offerDetailsSchema = new Schema({
 }, { _id: false });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PLACEMENT RECORD SUB-SCHEMA
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * What the placement cell records AFTER a hire, which is a different question
+ * from what the offer said.
+ *
+ * `offerDetails` is the promise made at selection time; this is what actually
+ * happened - did the candidate still hold the job six months later, and has
+ * anyone confirmed that rather than assumed it. The institute reports placement
+ * rates off these fields, so `verified` deliberately starts false and only an
+ * admin action sets it.
+ */
+const placementRecordSchema = new Schema({
+  /** How the placement came about, e.g. "Portal", "Campus Drive", "Referral". */
+  source: { type: String, trim: true },
+  /** Named contact on the employer side who handled the recruitment. */
+  recruitmentContact: { type: String, trim: true },
+  /** Where the hire stands now - blank until someone checks. */
+  employmentStatus: {
+    type: String,
+    enum: ["Working", "Resigned", "Terminated", "Promoted", "Switched", "Unknown"],
+  },
+  /** The 6-month check-in: when it happened and what came back. */
+  sixMonthFollowUpDate: { type: Date },
+  sixMonthFollowUpStatus: {
+    type: String,
+    enum: ["Pending", "Contacted", "Confirmed Working", "Left Job", "Unreachable"],
+    default: "Pending",
+  },
+  /** Confirmed against the employer, not merely recorded by us. */
+  verified: { type: Boolean, default: false },
+  verifiedAt: { type: Date },
+  verifiedBy: { type: Schema.Types.ObjectId, ref: "User" },
+  notes: { type: String, maxlength: 2000 },
+
+  /**
+   * When the automated six-month email went out.
+   *
+   * Its only job is to stop the scheduler sending the same candidate the same
+   * question every morning. Set once; a re-send means clearing it deliberately.
+   */
+  sixMonthEmailSentAt: { type: Date },
+  /** True when the candidate answered through the emailed link rather than a call. */
+  respondedBySelf: { type: Boolean, default: false },
+  respondedAt: { type: Date },
+}, { _id: false });
+
+// ─────────────────────────────────────────────────────────────────────────────
 // MAIN APPLICATION SCHEMA
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -232,7 +281,25 @@ const jobApplicationSchema = new Schema<IJobApplication>(
     
     // Offer Details
     offerDetails: offerDetailsSchema,
-    
+
+    // Post-hire placement tracking (see placementRecordSchema above)
+    placement: placementRecordSchema,
+
+    // How the application reached us, for the tracker sheet
+    applicationMethod: {
+      type: String,
+      enum: ["Portal", "Email", "Referral", "Walk-in", "Campus Drive", "Other"],
+      default: "Portal",
+    },
+
+    // Placement-cell follow-up on a live application
+    followUpDate: { type: Date },
+    followUpStatus: {
+      type: String,
+      enum: ["Not Required", "Pending", "Done", "No Response"],
+      default: "Not Required",
+    },
+
     // Metadata
     source: { type: String },
     referralCode: { type: String },

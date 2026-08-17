@@ -39,6 +39,14 @@ exports.SETTING_KEYS = {
     JOB_APPLICATION_APPROVED_RESUME_REQUIRED: 'job_application.approved_resume_required',
     // Registration
     REGISTRATION_STUDENT_ID_REQUIRED: 'registration.student_id_required',
+    // Profile
+    PROFILE_COMPLETENESS_ENABLED: 'profile.completeness_enabled',
+    PROFILE_COMPLETENESS_READY_THRESHOLD: 'profile.completeness_ready_threshold',
+    // Automated notifications
+    NOTIFICATIONS_ADMIN_DAILY_DIGEST: 'notifications.admin_daily_digest',
+    NOTIFICATIONS_ADMIN_DIGEST_RECIPIENTS: 'notifications.admin_digest_recipients',
+    NOTIFICATIONS_SIX_MONTH_CHECKIN: 'notifications.six_month_checkin',
+    NOTIFICATIONS_SIX_MONTH_REMINDER_DAYS: 'notifications.six_month_reminder_days',
 };
 // ─────────────────────────────────────────────────────────────────────────────
 // THE REGISTRY
@@ -125,6 +133,76 @@ exports.SETTINGS_REGISTRY = [
         // Public so the registration form (which is unauthenticated) can render the
         // field. The server still enforces it independently - see User/studentId.ts.
         isPublic: true,
+        isEditable: true,
+    },
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PROFILE
+    // ═══════════════════════════════════════════════════════════════════════════
+    {
+        key: exports.SETTING_KEYS.PROFILE_COMPLETENESS_ENABLED,
+        groupLabel: 'Profile',
+        label: 'Show the CV completeness bar',
+        description: 'When enabled, candidates see a progress bar on their profile showing how complete their CV is and exactly which section to fill in next. Turning it off hides the bar; the percentage is still calculated and still used for reporting.',
+        type: settings_interface_1.SETTING_VALUE_TYPES.BOOLEAN,
+        defaultValue: true,
+        isPublic: true,
+        isEditable: true,
+    },
+    {
+        key: exports.SETTING_KEYS.PROFILE_COMPLETENESS_READY_THRESHOLD,
+        groupLabel: 'Profile',
+        label: 'Job-ready threshold (% complete)',
+        description: 'How complete a CV must be before the candidate counts as job-ready. This is the number behind the "Job-ready Students" figure on the dashboard and the Monthly KPI sheet, so changing it changes that count.',
+        type: settings_interface_1.SETTING_VALUE_TYPES.NUMBER,
+        defaultValue: 80,
+        min: 10,
+        max: 100,
+        isPublic: true,
+        isEditable: true,
+    },
+    // ═══════════════════════════════════════════════════════════════════════════
+    // AUTOMATED NOTIFICATIONS
+    // ═══════════════════════════════════════════════════════════════════════════
+    {
+        key: exports.SETTING_KEYS.NOTIFICATIONS_ADMIN_DAILY_DIGEST,
+        groupLabel: 'Automated Emails',
+        label: 'Daily placement digest to admins',
+        description: 'Emails staff once a day with the six-month follow-ups that are due, hires still missing a joining date, and employer follow-up actions past their date. Nothing is sent on a day when all three lists are empty.',
+        type: settings_interface_1.SETTING_VALUE_TYPES.BOOLEAN,
+        defaultValue: false,
+        isPublic: false,
+        isEditable: true,
+    },
+    {
+        key: exports.SETTING_KEYS.NOTIFICATIONS_ADMIN_DIGEST_RECIPIENTS,
+        groupLabel: 'Automated Emails',
+        label: 'Digest recipients',
+        description: 'Comma-separated email addresses to receive the daily digest. Leave empty to send it to every ADMIN and HR account instead.',
+        type: settings_interface_1.SETTING_VALUE_TYPES.STRING,
+        defaultValue: '',
+        isPublic: false,
+        isEditable: true,
+    },
+    {
+        key: exports.SETTING_KEYS.NOTIFICATIONS_SIX_MONTH_CHECKIN,
+        groupLabel: 'Automated Emails',
+        label: 'Six-month check-in email to candidates',
+        description: 'Six months after a candidate joins, emails them a one-click "are you still working there?" form. Their answer updates the placement record automatically, so nobody has to phone round. Each candidate is emailed once per placement.',
+        type: settings_interface_1.SETTING_VALUE_TYPES.BOOLEAN,
+        defaultValue: false,
+        isPublic: false,
+        isEditable: true,
+    },
+    {
+        key: exports.SETTING_KEYS.NOTIFICATIONS_SIX_MONTH_REMINDER_DAYS,
+        groupLabel: 'Automated Emails',
+        label: 'Check-in link valid for (days)',
+        description: 'How long the one-click check-in link keeps working after it is emailed. After this the candidate sees an expired notice and the follow-up goes back to being a phone call.',
+        type: settings_interface_1.SETTING_VALUE_TYPES.NUMBER,
+        defaultValue: 30,
+        min: 3,
+        max: 180,
+        isPublic: false,
         isEditable: true,
     },
 ];

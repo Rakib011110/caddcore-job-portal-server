@@ -159,6 +159,44 @@ export interface IJobApplication {
     negotiationNotes?: string | undefined;
   } | undefined;
   
+  /**
+   * Post-hire tracking, filled in by the placement cell rather than by the
+   * hiring flow. `offerDetails` says what was promised at selection; this says
+   * what actually held afterwards. Placement-rate reporting reads `verified`,
+   * which only an admin action can set to true.
+   */
+  placement?: {
+    source?: string | undefined;
+    recruitmentContact?: string | undefined;
+    employmentStatus?:
+      | "Working" | "Resigned" | "Terminated" | "Promoted" | "Switched" | "Unknown"
+      | undefined;
+    sixMonthFollowUpDate?: Date | undefined;
+    sixMonthFollowUpStatus?:
+      | "Pending" | "Contacted" | "Confirmed Working" | "Left Job" | "Unreachable"
+      | undefined;
+    verified?: boolean | undefined;
+    verifiedAt?: Date | undefined;
+    verifiedBy?: ObjectId | undefined;
+    notes?: string | undefined;
+    /** Stamped when the automated six-month email was sent, so it sends once. */
+    sixMonthEmailSentAt?: Date | undefined;
+    /** The candidate answered via the emailed link, not via a phone call. */
+    respondedBySelf?: boolean | undefined;
+    respondedAt?: Date | undefined;
+  } | undefined;
+
+  /** How this application reached us. */
+  applicationMethod?:
+    | "Portal" | "Email" | "Referral" | "Walk-in" | "Campus Drive" | "Other"
+    | undefined;
+
+  /** Placement-cell follow-up on an application that is still open. */
+  followUpDate?: Date | undefined;
+  followUpStatus?:
+    | "Not Required" | "Pending" | "Done" | "No Response"
+    | undefined;
+
   // Additional Metadata
   source?: string | undefined;              // Where did the candidate find this job
   referralCode?: string | undefined;        // If referred by someone

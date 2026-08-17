@@ -105,7 +105,10 @@ const updateUser = (0, catchAsync_1.catchAsync)(async (req, res) => {
         'education', 'workExperience', 'skills', 'certifications',
         'languages', 'projects', 'awards', 'references', 'socialLinks',
         'jobExperiences', 'preferredLocations', 'technicalSkills', 'softSkills',
-        'jobAlertPreferences'
+        'jobAlertPreferences',
+        // The CV builder posts this as a JSON string like every other nested field.
+        // Left out of this list it reaches Mongoose as a string and the save fails.
+        'caddcoreCredentials'
     ];
     jsonFields.forEach(field => {
         if (updateData[field]) {
@@ -133,6 +136,21 @@ const updateUser = (0, catchAsync_1.catchAsync)(async (req, res) => {
             updateData.universityCertificateUrl = uploadedUrls.universityCertificateFile;
         if (uploadedUrls.affiliationDocumentFile)
             updateData.affiliationDocument = uploadedUrls.affiliationDocumentFile;
+    }
+    /**
+     * Placement-cell fields are staff-owned.
+     *
+     * This route is reachable by the profile owner as well as by an admin
+     * (`requireOwnershipOrAdmin`), so without this a student could set their own
+     * department and write their own internal placement notes - notes that are
+     * meant to be the counsellor's private record about them. Dropped silently
+     * rather than rejected, so an ordinary profile save that happens to echo the
+     * whole user object back still succeeds.
+     */
+    const isStaff = req.user?.role === 'ADMIN' || req.user?.role === 'HR';
+    if (!isStaff) {
+        delete updateData.department;
+        delete updateData.placementNotes;
     }
     // Clean undefined values
     Object.keys(updateData).forEach(key => {

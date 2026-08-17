@@ -9,10 +9,15 @@ import { SETTING_KEYS } from '../Settings/settings.constant';
 import { Resume } from './resume.model';
 import { measureCvChange } from './resume.diff';
 import { buildResumeSnapshot } from './resume.snapshot';
+import { calculateCvCompleteness } from './resume.completeness';
+import { badgeAffectingChange, suggestBadge } from './resume.badge';
+import { BADGE_PRIORITY_SCORES } from '../Verification/verification.constant';
 import {
   IApproveResumePayload,
   ICreateResumePayload,
   IRejectResumePayload,
+  ICaddcoreCredentials,
+  IResume,
   IResumeContent,
   IResumeDocument,
   IResumeEligibility,
@@ -105,6 +110,11 @@ const buildContentFromProfile = (user: TUser): IResumeContent => {
   if (user.awards?.length) content.awards = user.awards;
   if (user.references?.length) content.references = user.references;
   if (user.socialLinks) content.socialLinks = user.socialLinks;
+  // The CADD CORE claim travels with the CV, so the reviewer sees the
+  // credentials and the document together and approves both at once.
+  if (user.caddcoreCredentials) {
+    content.caddcoreCredentials = user.caddcoreCredentials as ICaddcoreCredentials;
+  }
   if (user.cvUrl) content.fileUrl = user.cvUrl;
   if (user.cvTemplate) content.template = user.cvTemplate;
 
@@ -308,6 +318,131 @@ const syncFromProfile = async (
   }
 
   return updateResume(userId, resumeId, buildContentFromProfile(user));
+};
+
+/**
+ * How complete the candidate's CV is, plus what to fill in next.
+ *
+ * Scored against the CV they build here - there is no uploaded-file path on
+ * this portal, so `User.cvUrl` deliberately plays no part.
+ *
+ * The percentage is also written back to `User.profileCompleteness`, because
+ * that is the field the dashboard and the Monthly KPI sheet count "job-ready
+ * students" from. Leaving the two to drift apart would mean the bar a candidate
+ * sees and the number the institute reports disagree.
+ */
+const getCvCompleteness = async (userId: string) => {
+  const [resume, threshold, enabled] = await Promise.all([
+    Resume.findOne({ userId, isDeleted: false }).sort({
+      isDefault: -1,
+      updatedAt: -1,
+    }),
+    SettingsService.get<number>(SETTING_KEYS.PROFILE_COMPLETENESS_READY_THRESHOLD),
+    SettingsService.get<boolean>(SETTING_KEYS.PROFILE_COMPLETENESS_ENABLED),
+  ]);
+
+  const content = resume ? extractContent(resume) : {};
+  const result = calculateCvCompleteness(content, Number(threshold) || 80);
+
+  // Fire and forget: the candidate should never wait on a reporting write, and
+  // a failed sync only means the number is refreshed on their next visit.
+  User.updateOne(
+    { _id: userId },
+    { profileCompleteness: result.percentage, lastProfileUpdate: new Date() }
+  ).catch(() => undefined);
+
+  return {
+    ...result,
+    /** When false the client hides the bar - the score is still computed. */
+    display: Boolean(enabled),
+    hasResume: Boolean(resume),
+    resumeId: resume?._id?.toString(),
+    resumeStatus: resume?.status,
+  };
+};
+
+/**
+ * Grant (or update) the CADD CORE badge as part of approving a CV.
+ *
+ * This is the whole point of merging the two workflows: the reviewer confirms
+ * the person and their credentials once, and the badge follows from that
+ * decision rather than from a second form nobody wanted to fill in twice.
+ *
+ * Three rules worth knowing:
+ *
+ *   - No claim, no badge. A candidate who left the CADD CORE section off gets
+ *     an approved CV and nothing else, which is correct - approving a CV is not
+ *     a statement about where someone studied.
+ *
+ *   - A badge is never DOWNGRADED silently. If a reviewer's override or the
+ *     derived tier lands below what the candidate already holds, the existing
+ *     badge stands. Tiers only ever describe more completed training, so going
+ *     down means something is wrong with the input, not with the student.
+ *
+ *   - Platinum is untouchable here. It means "placed through CADD CORE" and is
+ *     awarded on hire; re-approving a CV must not knock a placed graduate back
+ *     down to Gold.
+ */
+const grantBadgeFromCredentials = async (
+  resume: IResumeDocument,
+  reviewerId: string,
+  override?: 'bronze' | 'silver' | 'gold' | 'none'
+): Promise<void> => {
+  const credentials = (resume as any).caddcoreCredentials as
+    | ICaddcoreCredentials
+    | undefined;
+
+  if (override === 'none') return;
+
+  const suggestion = suggestBadge(credentials);
+  const badge = override ?? suggestion.badge;
+
+  if (!badge) return;
+
+  const user = await User.findById(resume.userId).select('caddcoreVerification');
+  if (!user) return;
+
+  const current = user.caddcoreVerification?.badgeType;
+
+  if (current === 'platinum') return;
+
+  const RANK = { bronze: 1, silver: 2, gold: 3, platinum: 4 } as const;
+  if (current && RANK[current] > RANK[badge]) return;
+
+  await User.updateOne(
+    { _id: resume.userId },
+    {
+      $set: {
+        caddcoreVerification: {
+          isVerified: true,
+          verificationStatus: 'approved',
+          badgeType: badge,
+          verifiedAt: new Date(),
+          verifiedBy: toObjectId(reviewerId),
+          studentId: credentials?.studentId,
+          batchNo: credentials?.batchNo,
+          courses: (credentials?.courses ?? []).map((course) => ({
+            courseId: course.courseId,
+            courseName: course.courseName,
+            completedAt: course.completionDate,
+          })),
+          hasOnJobTraining: Boolean(credentials?.hasOnJobTraining),
+          hasInternship: Boolean(credentials?.hasInternship),
+          priorityScore: BADGE_PRIORITY_SCORES[badge],
+        },
+      },
+    }
+  );
+
+  // Back-fill the account's Student ID only when it has none. Approval is the
+  // moment an admin actually confirmed the ID, so it is safe to lock in - but
+  // an ID the account already holds is never overwritten.
+  if (credentials?.studentId) {
+    await User.updateOne(
+      { _id: resume.userId, $or: [{ studentId: { $exists: false } }, { studentId: null }] },
+      { $set: { studentId: credentials.studentId } }
+    ).catch(() => undefined);
+  }
 };
 
 /** The CV content fields only, stripped of workflow bookkeeping. */
@@ -893,20 +1028,66 @@ const getAllResumes = async (filters: IResumeFilters = {}) => {
   };
 };
 
-const getResumeById = async (resumeId: string): Promise<IResumeDocument> => {
+/**
+ * The reviewer's view of a CV: plain content, not a live document.
+ *
+ * Spelled out rather than left as `any` so callers cannot reach for document
+ * methods that were lost the moment `badgeReview` was spread on.
+ */
+export interface IResumeReviewView extends IResume {
+  badgeReview: {
+    suggestion: ReturnType<typeof suggestBadge>;
+    currentBadge: string | null;
+    /** Platinum is awarded on placement and is never changed by a CV review. */
+    isLocked: boolean;
+    credentialsChanged: boolean;
+  };
+}
+
+const getResumeById = async (
+  resumeId: string
+): Promise<IResumeReviewView> => {
   if (!isValidObjectId(resumeId)) {
     throw new AppError(httpStatus.BAD_REQUEST, 'Invalid resume id');
   }
 
   const resume = await Resume.findOne({ _id: resumeId, isDeleted: false })
-    .populate('userId', 'name email profilePhoto mobileNumber role')
+    .populate('userId', 'name email profilePhoto mobileNumber role studentId caddcoreVerification')
     .populate('reviewedBy', 'name email role');
 
   if (!resume) {
     throw new AppError(httpStatus.NOT_FOUND, 'Resume not found');
   }
 
-  return resume;
+  /**
+   * The reviewer needs three things the raw document does not carry: which
+   * badge these credentials earn, which badge the account already holds, and
+   * whether the claims have changed since that badge was granted.
+   *
+   * Computed here rather than in the browser so the tier the reviewer sees and
+   * the tier the approval actually grants come from the same function.
+   */
+  const credentials = (resume as any).caddcoreCredentials as
+    | ICaddcoreCredentials
+    | undefined;
+
+  const owner = resume.userId as any;
+  const approvedCredentials = (resume.approvedContent as any)
+    ?.caddcoreCredentials as ICaddcoreCredentials | undefined;
+
+  return {
+    // `toObject()` widens `_id` to `unknown`; the document is an IResume.
+    ...(resume.toObject() as IResume),
+    badgeReview: {
+      suggestion: suggestBadge(credentials),
+      currentBadge: owner?.caddcoreVerification?.badgeType ?? null,
+      /** Platinum is awarded on placement and is never changed by a CV review. */
+      isLocked: owner?.caddcoreVerification?.badgeType === 'platinum',
+      credentialsChanged: resume.hasBeenApproved
+        ? badgeAffectingChange(approvedCredentials, credentials)
+        : false,
+    },
+  };
 };
 
 /** Shared guard for approve/reject */
@@ -971,6 +1152,11 @@ const reviewResume = async (
     resume.approvedVersion = resume.version;
     resume.pendingReapproval = false;
     resume.changeSinceApproval = 0;
+
+    // Approving the CV is also what grants the CADD CORE badge. Awaited rather
+    // than fired off, because a badge that silently failed to apply is exactly
+    // the kind of thing nobody notices until a student asks where it went.
+    await grantBadgeFromCredentials(resume, reviewerId, payload.badgeOverride);
   } else {
     // Feedback is optional per spec - a reviewer may reject without a reason.
     resume.rejectionReason = (payload.rejectionReason?.trim() ||
@@ -1111,6 +1297,9 @@ export const ResumeService = {
   setDefaultResume,
   submitForReview,
   withdrawSubmission,
+
+  // Completeness
+  getCvCompleteness,
 
   // Eligibility
   getEligibility,

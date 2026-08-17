@@ -86,5 +86,8 @@ exports.RESUME_CONTENT_FIELDS = [
     'fileUrl',
     'template',
     'sectionOrder',
+    // Editing the CADD CORE credentials invalidates the approval too - the badge
+    // was granted for a specific set of claims, so changing them needs a look.
+    'caddcoreCredentials',
 ];
 //# sourceMappingURL=resume.constant.js.map

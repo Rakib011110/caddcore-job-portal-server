@@ -15,6 +15,9 @@ const chat_routes_1 = require("../app/modules/Chat/chat.routes");
 const notification_routes_1 = require("../app/modules/Notification/notification.routes");
 const resume_routes_1 = require("../app/modules/Resume/resume.routes");
 const settings_routes_1 = require("../app/modules/Settings/settings.routes");
+const employerFollowup_routes_1 = require("../app/modules/EmployerFollowup/employerFollowup.routes");
+const export_routes_1 = require("../app/modules/export/export.routes");
+const cron_routes_1 = require("../app/modules/cron/cron.routes");
 const routes = (0, express_1.Router)();
 /**
  * ═══════════════════════════════════════════════════════════════════════════════
@@ -91,6 +94,21 @@ const moduleRoutes = [
     {
         path: "/settings",
         route: settings_routes_1.SettingsRoutes
+    },
+    // Employer Follow-up (Placement cell call log)
+    {
+        path: "/employer-followups",
+        route: employerFollowup_routes_1.EmployerFollowupRoutes
+    },
+    // Excel / .xlsx Report Exports
+    {
+        path: "/export",
+        route: export_routes_1.ExportRoutes
+    },
+    // Scheduled jobs + the candidate six-month check-in link
+    {
+        path: "/cron",
+        route: cron_routes_1.CronRoutes
     }
 ];
 moduleRoutes.forEach((route) => routes.use(route.path, route.route));

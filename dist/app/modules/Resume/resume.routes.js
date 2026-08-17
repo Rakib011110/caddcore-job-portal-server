@@ -57,6 +57,8 @@ router.patch('/admin/:id/reject', auth_1.requireAdmin, (0, validateRequest_1.def
 // ─────────────────────────────────────────────────────────────────────────────
 // Can I apply for jobs yet?
 router.get('/me/eligibility', auth_1.requireAuth, resume_controller_1.ResumeControllers.getMyEligibility);
+// CV completeness for the candidate's progress bar
+router.get('/me/completeness', auth_1.requireAuth, resume_controller_1.ResumeControllers.getMyCvCompleteness);
 // My working CV (created from my profile on first access)
 router.get('/me/primary', auth_1.requireAuth, resume_controller_1.ResumeControllers.getPrimaryResume);
 // List my resumes
